@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LocalVault — Private. Local. Fast.</title>
+<style>
+  :root{
+    --bg:#0b0d12;
+    --panel:#111522;
+    --panel-2:#0e1320;
+    --accent:#2f6dff;      /* LocalVault blue */
+    --accent-2:#8ec5ff;    /* highlight blue */
+    --text:#e8edf6;
+    --muted:#9aa7bd;
+    --danger:#ff6b6b;
+    --ok:#37d67a;
+    --border:rgba(255,255,255,0.08);
+    --input:#0c101a;
+    --shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    color:var(--text);
+    font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji";
+    /* Full-bleed, non-repeating branded background */
+    background:
+      radial-gradient(1400px 900px at 75% -15%, rgba(46,109,255,.18) 0%, rgba(46,109,255,0) 55%) fixed no-repeat,
+      radial-gradient(1400px 900px at 20% -20%, rgba(142,197,255,.12) 0%, rgba(142,197,255,0) 50%) fixed no-repeat,
+      var(--bg);
+    background-size: cover,cover,cover;
+    min-height:100vh;
+  }
+  a{color:var(--accent); text-decoration:none}
+  .wrap{max-width:1200px; margin:28px auto; padding:0 18px;}
+
+  /* Layout: Sidebar + Content */
+  .app{display:grid; grid-template-columns: 240px 1fr; gap:16px;}
+  @media (max-width: 900px){ .app{grid-template-columns: 1fr} aside{position:sticky; top:0; z-index:5}}
+
+  header{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:18px;}
+  .brand{display:flex; gap:14px; align-items:center;}
+  /* Remove blue tile behind logo and make the icon larger */
+  .logo{
+    width:56px; height:56px; border-radius:0; background:none; box-shadow:none;
+    display:grid; place-items:center;
+  }
+  .brand h1{margin:0; font-size:18px; letter-spacing:.3px}
+  .tagline{font-size:12px; color:var(--muted)}
+
+  /* Sidebar */
+  aside{
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:12px;
+    box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .nav-section{margin-bottom:8px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.25px}
+  .nav{display:flex; flex-direction:column; gap:8px;}
+  .nav a{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; border-radius:12px; border:1px solid var(--border);
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
+    color:var(--text);
+  }
+  .nav a.active{background:var(--panel-2); border-color:rgba(255,255,255,.14); box-shadow:inset 0 0 0 1px rgba(142,197,255,.15)}
+
+  .toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .btn, button{
+    appearance:none; border:1px solid var(--border); color:var(--text);
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
+    padding:10px 12px; border-radius:12px; cursor:pointer;
+    transition:.15s transform ease,.15s background ease,.15s border-color ease;
+    box-shadow:var(--shadow);
+  }
+  .btn:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.16)}
+  .btn.primary{background:linear-gradient(180deg,var(--accent),#1f55e8); color:white; border-color:transparent}
+  .btn.ghost{background:var(--panel-2)}
+  .btn.small{font-size:12px; padding:8px 10px}
+  select, input[type="text"], input[type="number"]{
+    width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border);
+    background:var(--input); color:var(--text); outline:none;
+  }
+  label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+  .grid{display:grid; gap:14px}
+  @media (min-width:900px){ .grid.cols-4{grid-template-columns:repeat(4,1fr)} }
+  @media (min-width:900px){ .grid.cols-3{grid-template-columns:repeat(3,1fr)} }
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+    border:1px solid var(--border); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow);
+  }
+  .card h3{margin:0 0 8px 0; font-size:14px; color:var(--muted); font-weight:600; letter-spacing:.2px}
+  .stat{font-size:24px; font-weight:800; letter-spacing:.3px}
+  .sub{font-size:12px; color:var(--muted)}
+  .row{display:flex; gap:10px; align-items:center}
+  .row.wrap{flex-wrap:wrap}
+  .grow{flex:1}
+  .sep{height:1px; background:var(--border); margin:12px 0}
+  .section-title{margin:18px 0 12px; font-size:13px; color:var(--muted); letter-spacing:.25px; text-transform:uppercase}
+  .list{display:flex; flex-direction:column; gap:10px}
+  .item{display:flex; gap:10px; align-items:center}
+  .item input{min-width:0}
+  /* >>> Make name inputs wide enough for ~10 letters */
+  .item .grow{flex:1.8; min-width:220px;}
+  .item input.amount{width:160px}
+  .item .remove{border-color:transparent; background:#1b0f13; color:#ff9bb6}
+  .sum{font-weight:700}
+  .legend{display:flex; gap:8px; align-items:center; color:var(--muted); font-size:12px}
+  .dot{width:10px; height:10px; border-radius:50%}
+  .dot.pos{background:var(--ok)} .dot.neg{background:var(--danger)} .dot.zero{background:var(--muted)}
+  .muted{color:var(--muted)}
+  .small{font-size:12px}
+  footer{margin-top:32px; text-align:center; color:var(--muted); font-size:13px;}
+
+  /* Calendar (fixed cell size) */
+  .cal-head{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:8px; color:var(--muted); font-size:12px}
+  .calendar{display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:8px; grid-auto-rows: 110px;}
+  .day{
+    border:1px solid var(--border); border-radius:12px; background:var(--panel);
+    padding:8px; display:flex; flex-direction:column; justify-content:space-between; cursor:pointer; transition:.12s transform ease,.12s border-color ease;
+    height:100%; overflow:hidden;
+  }
+  .day:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.16)}
+  .day .dnum{font-size:12px; color:var(--muted)}
+  .day .amt{font-weight:800; font-size:13px; white-space:nowrap; text-overflow:ellipsis; overflow:hidden}
+  .day.zero .amt{color:var(--muted)}
+  .day.pos{background:linear-gradient(180deg, rgba(55,214,122,.08), rgba(55,214,122,.02))}
+  .day.pos .amt{color:var(--ok)}
+  .day.neg{background:linear-gradient(180deg, rgba(255,107,107,.12), rgba(255,107,107,.02))}
+  .day.neg .amt{color:var(--danger)}
+
+  /* Modal (sheet) */
+  .modal{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:flex-end; justify-content:center; padding:16px;}
+  .modal.open{display:flex}
+  .sheet{width:min(720px,100%); background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:16px; box-shadow:0 30px 60px rgba(0,0,0,.55);}
+  .sheet h3{margin:0 0 10px 0}
+  .right{text-align:right}
+
+  /* Pages */
+  .page{display:none}
+  .page.active{display:block}
+
+  /* Wordmark styling */
+  .wordmark{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px}
+  .wordmark .name{font-size:18px; color:#dfe9ff}
+  .wordmark .tag{font-size:12px; color:var(--muted)}
+
+  /* Passive categories */
+  .cat{border:1px solid var(--border); border-radius:14px; padding:12px; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.005));}
+  .cat-head{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
+  .cat-head input{max-width:320px}
+</style>
+
+<!-- Blue SVG favicon (shield-only) -->
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="g" x1="4" y1="4" x2="20" y2="20"><stop stop-color="%232f6dff"/><stop offset="1" stop-color="%238ec5ff"/></linearGradient></defs><path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(%23g)"/><circle cx="12" cy="11.1" r="2" fill="%230b0d12"/><rect x="11.25" y="13.1" width="1.5" height="3" rx=".75" fill="%230b0d12"/></svg>'>
+<meta name="theme-color" content="#0b0d12">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <!-- Bigger, tile-less shield logo -->
+        <div class="logo" aria-label="LocalVault logo" title="LocalVault">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="lvb" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+                <stop stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent-2)"/>
+              </linearGradient>
+            </defs>
+            <path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(#lvb)"/>
+            <circle cx="12" cy="11.2" r="2" fill="#0a0f1a"/><rect x="11.2" y="13.2" width="1.6" height="3.1" rx="0.8" fill="#0a0f1a"/>
+            <path d="M7.2 7.4h1.9v7.2H7.2V7.4zm9.6 7.2h-2l-3.2-7.2h1.9l3.3 7.2z" fill="#0a0f1a" opacity=".65"/>
+          </svg>
+        </div>
+        <div class="wordmark">
+          <span class="name">LocalVault</span>
+          <span class="tag">Private. Local. Fast.</span>
+        </div>
+      </div>
+      <div class="toolbar">
+        <label class="switch">
+          <span>Currency</span>
+          <select id="currencySelect">
+            <option value="GBP" selected>GBP (£)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="JPY">JPY (¥)</option>
+          </select>
+        </label>
+        <button class="btn ghost" id="exportBtn" title="Download your data as JSON">Export</button>
+        <label class="btn ghost" for="importFile" title="Import previously exported data" style="cursor:pointer">Import</label>
+        <input id="importFile" type="file" accept="application/json" style="display:none">
+      </div>
+    </header>
+
+    <div class="app">
+      <!-- SIDEBAR NAV -->
+      <aside>
+        <div class="nav-section">Menu</div>
+        <nav class="nav" id="nav">
+          <a href="#dashboard" data-page="dashboard" class="active">🏠 Dashboard</a>
+          <a href="#accounts" data-page="accounts">🏦 Accounts</a>
+          <a href="#income" data-page="income">💸 Passive Income</a>
+          <a href="#subscriptions" data-page="subscriptions">🔁 Subscriptions</a>
+          <a href="#calendar" data-page="calendar">📅 Daily P/L</a>
+          <a href="#settings" data-page="settings">⚙️ Settings</a>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT PAGES -->
+      <main>
+        <!-- DASHBOARD -->
+        <section id="page-dashboard" class="page active">
+          <div class="row" style="justify-content:space-between; align-items:center; margin-bottom:8px">
+            <div class="section-title" style="margin:0">Overview</div>
+            <div class="row small">
+              <label class="muted">View as</label>
+              <select id="viewSelect" style="width:auto">
+                <option value="monthly" selected>Monthly</option>
+                <option value="weekly">Weekly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid cols-4">
+            <div class="card">
+              <h3>Total Net Worth</h3>
+              <div class="stat" id="netWorth">—</div>
+              <div class="sub">Assets − Debts (incl. ISA principal)</div>
+            </div>
+            <div class="card">
+              <h3>Bank Balance</h3>
+              <div class="stat" id="bankTotal">—</div>
+              <div class="sub"><span class="small muted">Sum of all accounts</span></div>
+            </div>
+            <div class="card">
+              <h3>Passive Income (<span id="piPeriod">Monthly</span>)</h3>
+              <div class="stat" id="passiveSum">—</div>
+              <div class="sub">All categories</div>
+            </div>
+            <div class="card">
+              <h3>ISA Payout (<span id="isaPeriod">Monthly</span>)</h3>
+              <div class="stat" id="isaMonthly">—</div>
+              <div class="sub">Scaled by period</div>
+            </div>
+          </div>
+
+          <div class="section-title">Costs</div>
+          <div class="grid cols-3">
+            <div class="card">
+              <h3>Subscriptions (<span id="subPeriod">Monthly</span>)</h3>
+              <div class="stat" id="subsStat">—</div>
+              <div class="sub">Sum of all subscriptions</div>
+            </div>
+            <div class="card">
+              <h3>Quick Add to Today</h3>
+              <div class="row">
+                <div class="grow">
+                  <label>Amount (+ / −)</label>
+                  <input id="quickAmt" type="number" step="0.01" placeholder="e.g. 25.00">
+                </div>
+              </div>
+              <div class="row" style="margin-top:8px; gap:8px;">
+                <button class="btn primary" id="quickAdd">Add Entry</button>
+                <button class="btn" data-jump="calendar">Open Today's Day</button>
+                <div class="grow"></div>
+                <button class="btn small" data-jump="accounts">Accounts</button>
+                <button class="btn small" data-jump="income">Income</button>
+                <button class="btn small" data-jump="subscriptions">Subscriptions</button>
+                <button class="btn small" data-jump="settings">Settings</button>
+              </div>
+              <div class="small muted" id="quickNote"></div>
+            </div>
+
+            <div class="card">
+              <h3>At a Glance</h3>
+              <div class="row small"><span class="muted">Banks Total</span><div class="grow"></div><span class="sum" id="bankTotal2">—</span></div>
+              <div class="row small"><span class="muted">Assets Total</span><div class="grow"></div><span class="sum" id="assetTotal">—</span></div>
+              <div class="row small"><span class="muted">Debts Total</span><div class="grow"></div><span class="sum" id="debtTotal">—</span></div>
+              <div class="row small"><span class="muted">Passive / month</span><div class="grow"></div><span class="sum" id="passiveTotal">—</span></div>
+              <div class="row small"><span class="muted">ISA / month</span><div class="grow"></div><span class="sum" id="isaMonthly2">—</span></div>
+              <div class="row small"><span class="muted">ISA / year</span><div class="grow"></div><span class="sum" id="isaYearly">—</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ACCOUNTS -->
+        <section id="page-accounts" class="page">
+          <div class="section-title">Accounts, Assets & Debts</div>
+          <div class="grid cols-3">
+            <div class="card">
+              <h3>Bank Accounts</h3>
+              <div id="bankList" class="list"></div>
+              <button class="btn small" id="addBank">+ Add Account</button>
+              <div class="sep"></div>
+              <div class="row"><span class="muted">Total</span><div class="grow"></div><span class="sum" id="bankTotal_side">—</span></div>
+            </div>
+
+            <div class="card">
+              <h3>Other Assets</h3>
+              <div id="assetList" class="list"></div>
+              <button class="btn small" id="addAsset">+ Add Asset</button>
+              <div class="sep"></div>
+              <div class="row"><span class="muted">Total</span><div class="grow"></div><span class="sum" id="assetTotal_side">—</span></div>
+            </div>
+
+            <div class="card">
+              <h3>Debts</h3>
+              <div id="debtList" class="list"></div>
+              <button class="btn small" id="addDebt">+ Add Debt</button>
+              <div class="sep"></div>
+              <div class="row"><span class="muted">Total</span><div class="grow"></div><span class="sum" id="debtTotal_side">—</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PASSIVE INCOME (with categories) -->
+        <section id="page-income" class="page">
+          <div class="section-title">Passive Income</div>
+          <div class="grid cols-3">
+            <div class="card" style="grid-column:1/-1">
+              <div class="row" style="justify-content:space-between">
+                <h3>Categories</h3>
+                <button class="btn small" id="addCategory">+ Add Category</button>
+              </div>
+              <div id="catList" class="list"></div>
+              <div class="sep"></div>
+              <div class="row small">
+                <span class="muted">Total / month</span>
+                <div class="grow"></div><span class="sum" id="passiveTotal_side">—</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>ISA Calculator</h3>
+              <div class="row">
+                <div class="grow">
+                  <label>ISA Principal</label>
+                  <input id="isaPrincipal" type="number" min="0" step="0.01" placeholder="0.00">
+                </div>
+                <div class="grow">
+                  <label>Annual Rate (%)</label>
+                  <input id="isaRate" type="number" min="0" step="0.01" placeholder="e.g. 4.5">
+                </div>
+              </div>
+              <div class="row" style="margin-top:8px">
+                <label class="switch">
+                  <input id="isaCompound" type="checkbox">
+                  <span>Estimate with monthly compounding</span>
+                </label>
+              </div>
+              <div class="sep"></div>
+              <div class="row small">
+                <span class="muted">Est. Monthly Payout</span>
+                <div class="grow"></div><span class="sum" id="isaMonthly_side">—</span>
+              </div>
+              <div class="row small">
+                <span class="muted">Est. Yearly Return</span>
+                <div class="grow"></div><span class="sum" id="isaYearly_side">—</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Shortcuts</h3>
+              <div class="row wrap">
+                <button class="btn" data-jump="dashboard">Dashboard</button>
+                <button class="btn" data-jump="subscriptions">Subscriptions</button>
+                <button class="btn" data-jump="calendar">Calendar</button>
+              </div>
+              <div class="small muted">Use the dashboard dropdown to scale period.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SUBSCRIPTIONS -->
+        <section id="page-subscriptions" class="page">
+          <div class="section-title">Subscriptions</div>
+          <div class="grid cols-3">
+            <div class="card" style="grid-column:1/-1">
+              <div class="row" style="justify-content:space-between">
+                <h3>Recurring Costs</h3>
+                <button class="btn small" id="addSub">+ Add Subscription</button>
+              </div>
+              <div id="subsList" class="list"></div>
+              <div class="sep"></div>
+              <div class="row small"><span class="muted">Weekly total</span><div class="grow"></div><span class="sum" id="subsWeekly">—</span></div>
+              <div class="row small"><span class="muted">Monthly total</span><div class="grow"></div><span class="sum" id="subsMonthly">—</span></div>
+              <div class="row small"><span class="muted">Yearly total</span><div class="grow"></div><span class="sum" id="subsYearly">—</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CALENDAR -->
+        <section id="page-calendar" class="page">
+          <div class="section-title">Daily Profit / Loss</div>
+          <div class="card">
+            <div class="row wrap" style="justify-content:space-between; gap:10px;">
+              <div class="row" style="gap:8px">
+                <button class="btn" id="prevMonth">◀</button>
+                <div class="sum" id="monthLabel">—</div>
+                <button class="btn" id="nextMonth">▶</button>
+              </div>
+              <div class="legend">
+                <span class="dot pos"></span> Gain
+                <span class="dot neg" style="margin-left:10px"></span> Loss
+                <span class="dot zero" style="margin-left:10px"></span> Zero
+              </div>
+            </div>
+            <div class="cal-head" id="calHead"></div>
+            <div class="calendar" id="calendar"></div>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="page-settings" class="page">
+          <div class="section-title">Options</div>
+          <div class="grid cols-3">
+            <div class="card">
+              <h3>Display & Net Worth</h3>
+              <div class="row"><label class="switch"><input id="includeIsaInNet" type="checkbox" checked>Include ISA principal in Net Worth</label></div>
+              <div class="row"><label class="switch"><input id="startOnMonday" type="checkbox" checked>Start calendar on Monday</label></div>
+              <div class="row"><label class="switch"><input id="showZeroDays" type="checkbox">Show zero on empty days</label></div>
+              <div class="sep"></div>
+              <div class="small muted">Data never leaves your device. Export/Import for backup.</div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- TRANSACTIONS MODAL -->
+    <div class="modal" id="txModal" aria-hidden="true">
+      <div class="sheet">
+        <div class="row" style="justify-content:space-between">
+          <h3 id="txTitle">Transactions</h3>
+          <button class="btn" id="closeModal">Close</button>
+        </div>
+        <div class="small muted" id="txDateNote"></div>
+        <div class="sep"></div>
+        <div id="txList" class="list"></div>
+        <button class="btn small" id="addTx">+ Add Entry</button>
+        <div class="sep"></div>
+        <div class="row">
+          <div class="muted">Day Total</div>
+          <div class="grow"></div>
+          <div class="sum" id="txTotal">—</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div style="display:flex; align-items:center; justify-content:center; gap:10px; opacity:.9">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <defs><linearGradient id="lvbf" x1="4" y1="4" x2="20" y2="20"><stop stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent-2)"/></linearGradient></defs>
+          <path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(#lvbf)"/>
+          <circle cx="12" cy="11.2" r="2" fill="#0a0f1a"/><rect x="11.2" y="13.2" width="1.6" height="3.1" rx="0.8" fill="#0a0f1a"/>
+          <path d="M7.2 7.4h1.9v7.2H7.2V7.4zm9.6 7.2h-2l-3.2-7.2h1.9l3.3 7.2z" fill="#0a0f1a" opacity=".65"/>
+        </svg>
+        <span>LocalVault — Private. Local. Fast.</span>
+      </div>
+    </footer>
+  </div>
+
+<script>
+(() => {
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+  const fmtCache = {};
+  const getFmt = (code) => fmtCache[code] ||= new Intl.NumberFormat(undefined, {style:'currency', currency:code, maximumFractionDigits:2});
+  const today = new Date();
+
+  // ------- STATE -------
+  function initialState(){
+    return {
+      currency:'GBP',
+      settings:{
+        includeIsaInNet:true, startOnMonday:true, showZeroDays:false, compoundISA:false,
+        view:'monthly'
+      },
+      banks:[], assets:[], debts:[],
+      /* v2 passive income with categories */
+      passiveCats:[],                     // [{id,name,items:[{id,name,amount}]}]
+      passive:[],                         // legacy (migrated to a Default category)
+      isa:{ principal:0, rate:0 },
+      /* subscriptions */
+      subscriptions:[],                   // [{id,name,amount,freq:'weekly'|'monthly'|'yearly'}]
+      days:{},                            // 'YYYY-MM-DD': { entries:[{desc, amount}], total:number }
+      cal:{ y: today.getFullYear(), m: today.getMonth() }
+    }
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem('wealthTrackerV1');
+      if(!raw) return initialState();
+      const s = JSON.parse(raw);
+      const base = initialState();
+      const merged = Object.assign(base, s, {
+        settings:Object.assign(base.settings, s.settings||{}),
+        isa:Object.assign(base.isa, s.isa||{}),
+        cal:Object.assign(base.cal, s.cal||{})
+      });
+      // Migration: move legacy passive array into a default category if needed
+      if((merged.passiveCats||[]).length===0 && (merged.passive||[]).length){
+        merged.passiveCats = [{
+          id:id(), name:'General', items: merged.passive.map(p=>({id:id(), name:p.name||'', amount:Number(p.amount)||0}))
+        }];
+        merged.passive = []; // clear legacy
+      }
+      return merged;
+    }catch(e){ console.warn('Failed to load, resetting.', e); return initialState(); }
+  }
+  let state = loadState();
+  const saveState = () => localStorage.setItem('wealthTrackerV1', JSON.stringify(state));
+
+  // ------- HELPERS -------
+  function currency(amount){ return getFmt(state.currency).format(isFinite(amount)? amount : 0); }
+  function parseNum(v){ const n = Number(v); return isFinite(n)? n : 0; }
+  function id(){ return Math.random().toString(36).slice(2,9); }
+  function ymd(d){ return d.toISOString().slice(0,10); }
+
+  // ------- DYNAMIC LISTS (simple lists) -------
+  function renderList(container, list, labels){
+    container.innerHTML = '';
+    list.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `
+        <input class="grow" type="text" placeholder="${labels.name}" value="${item.name||''}">
+        <input class="amount" type="number" step="0.01" placeholder="${labels.amount}" value="${item.amount ?? 0}">
+        <button class="btn remove">✕</button>
+      `;
+      const [nameEl, amtEl, delBtn] = row.children;
+      nameEl.addEventListener('input', e => { item.name = e.target.value; saveAndUpdate(); });
+      amtEl.addEventListener('input', e => { item.amount = parseNum(e.target.value); saveAndUpdate(); });
+      delBtn.addEventListener('click', () => { list.splice(idx,1); saveAndUpdate({rerenderLists:true}); });
+      container.appendChild(row);
+    });
+  }
+  function addRow(list, defaults){ list.push(defaults); saveAndUpdate({rerenderLists:true}); }
+
+  // ------- PASSIVE CATEGORIES -------
+  function sumPassiveMonthly(){
+    return (state.passiveCats||[]).reduce((acc,c)=> acc + c.items.reduce((a,b)=> a + (parseNum(b.amount)||0),0), 0);
+  }
+  function renderCategories(){
+    const wrap = $('#catList');
+    wrap.innerHTML = '';
+    (state.passiveCats||[]).forEach((cat, cIdx) => {
+      const box = document.createElement('div'); box.className='cat';
+      box.innerHTML = `
+        <div class="cat-head">
+          <input class="grow" type="text" placeholder="Category name" value="${cat.name||''}">
+          <button class="btn small" data-add>+ Add Item</button>
+          <button class="btn small remove" data-del title="Delete category">✕</button>
+        </div>
+        <div class="list" data-items></div>
+        <div class="sep"></div>
+        <div class="row small"><span class="muted">Category total / month</span><div class="grow"></div><span class="sum" data-ctotal>—</span></div>
+      `;
+      const nameEl = box.querySelector('input');
+      const addBtn = box.querySelector('[data-add]');
+      const delBtn = box.querySelector('[data-del]');
+      const listEl = box.querySelector('[data-items]');
+      const totalEl = box.querySelector('[data-ctotal]');
+
+      nameEl.addEventListener('input', e => { cat.name = e.target.value; saveAndUpdate(); });
+      addBtn.addEventListener('click', ()=>{ cat.items.push({id:id(), name:'', amount:0}); saveAndUpdate({renderCats:true}); });
+      delBtn.addEventListener('click', ()=>{ state.passiveCats.splice(cIdx,1); saveAndUpdate({renderCats:true}); });
+
+      // Render items in the category
+      cat.items.forEach((item, iIdx) => {
+        const row = document.createElement('div');
+        row.className = 'item';
+        row.innerHTML = `
+          <input class="grow" type="text" placeholder="Income name" value="${item.name||''}">
+          <input class="amount" type="number" step="0.01" placeholder="/ month" value="${item.amount ?? 0}">
+          <button class="btn remove">✕</button>
+        `;
+        const [nameIn, amtIn, delIn] = row.children;
+        nameIn.addEventListener('input', e => { item.name = e.target.value; saveAndUpdate(); });
+        amtIn.addEventListener('input', e => { item.amount = parseNum(e.target.value); saveAndUpdate(); });
+        delIn.addEventListener('click', ()=>{ cat.items.splice(iIdx,1); saveAndUpdate({renderCats:true}); });
+        listEl.appendChild(row);
+      });
+
+      const catTotal = cat.items.reduce((a,b)=> a + (parseNum(b.amount)||0),0);
+      totalEl.textContent = currency(catTotal);
+      wrap.appendChild(box);
+    });
+  }
+
+  // ------- SUBSCRIPTIONS -------
+  function normalizeToMonthly(amount, freq){
+    if(freq==='weekly') return amount * 52 / 12;
+    if(freq==='yearly') return amount / 12;
+    return amount; // monthly
+  }
+  function scaleFromMonthly(monthly, target){
+    if(target==='weekly') return monthly * 12 / 52;
+    if(target==='yearly') return monthly * 12;
+    return monthly; // monthly
+  }
+  function subsTotals(){
+    const monthly = (state.subscriptions||[]).reduce((a,s)=> a + normalizeToMonthly(parseNum(s.amount)||0, s.freq||'monthly'), 0);
+    return {
+      weekly: scaleFromMonthly(monthly, 'weekly'),
+      monthly,
+      yearly: scaleFromMonthly(monthly, 'yearly')
+    };
+  }
+  function renderSubs(){
+    const wrap = $('#subsList');
+    wrap.innerHTML = '';
+    (state.subscriptions||[]).forEach((s, idx) => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `
+        <input class="grow" type="text" placeholder="Subscription name" value="${s.name||''}">
+        <input class="amount" type="number" step="0.01" placeholder="Amount" value="${s.amount ?? 0}">
+        <select style="width:130px">
+          <option value="weekly"${s.freq==='weekly'?' selected':''}>Weekly</option>
+          <option value="monthly"${(!s.freq||s.freq==='monthly')?' selected':''}>Monthly</option>
+          <option value="yearly"${s.freq==='yearly'?' selected':''}>Yearly</option>
+        </select>
+        <button class="btn remove">✕</button>
+      `;
+      const [nameEl, amtEl, selEl, delBtn] = row.children;
+      nameEl.addEventListener('input', e => { s.name = e.target.value; saveAndUpdate(); });
+      amtEl.addEventListener('input', e => { s.amount = parseNum(e.target.value); saveAndUpdate(); });
+      selEl.addEventListener('change', e => { s.freq = e.target.value; saveAndUpdate(); });
+      delBtn.addEventListener('click', ()=>{ state.subscriptions.splice(idx,1); saveAndUpdate({renderSubs:true}); });
+      wrap.appendChild(row);
+    });
+    const t = subsTotals();
+    $('#subsWeekly').textContent = currency(t.weekly);
+    $('#subsMonthly').textContent = currency(t.monthly);
+    $('#subsYearly').textContent = currency(t.yearly);
+  }
+
+  // ------- CALCULATIONS -------
+  const sum = arr => arr.reduce((a,b)=> a + (parseNum(b.amount)||0), 0);
+  function totals(){
+    const bank = sum(state.banks);
+    const asset = sum(state.assets);
+    const debt = sum(state.debts);
+    const passMonthly = sumPassiveMonthly();
+    const isaP = Number(state.isa.principal)||0;
+    const includeIsa = !!state.settings.includeIsaInNet;
+    const net = bank + asset + (includeIsa? isaP : 0) - debt;
+    // ISA payout baseline (monthly)
+    const r = (Number(state.isa.rate)||0)/100;
+    const compound = !!state.settings.compoundISA;
+    const monthlyRate = compound ? (Math.pow(1+r,1/12)-1) : (r/12);
+    const isaMonthly = isaP * monthlyRate;
+    const isaYearly = isaP * (compound? (Math.pow(1+monthlyRate,12)-1) : r);
+    return { bank, asset, debt, net, passMonthly, isaMonthly, isaYearly };
+  }
+  function formatByView(amountMonthly, view){
+    return currency(scaleFromMonthly(amountMonthly, view));
+  }
+
+  // ------- SUMMARY RENDER -------
+  function renderSummary(){
+    const t = totals();
+    const view = state.settings.view || 'monthly';
+
+    // Dashboard stats
+    $('#netWorth').textContent = currency(t.net);
+    $('#bankTotal').textContent = currency(t.bank);
+
+    $('#passiveSum').textContent = formatByView(t.passMonthly, view);
+    $('#piPeriod').textContent = view[0].toUpperCase()+view.slice(1);
+
+    $('#isaMonthly').textContent = formatByView(t.isaMonthly, view);
+    $('#isaPeriod').textContent = view[0].toUpperCase()+view.slice(1);
+
+    // Costs card
+    const subsT = subsTotals();
+    const subsByView = view==='weekly'? subsT.weekly : (view==='yearly'? subsT.yearly : subsT.monthly);
+    $('#subsStat').textContent = currency(subsByView);
+    $('#subPeriod').textContent = view[0].toUpperCase()+view.slice(1);
+
+    // Glance + side panels
+    $('#bankTotal2').textContent = currency(t.bank);
+    $('#assetTotal').textContent = currency(t.asset);
+    $('#debtTotal').textContent = currency(t.debt);
+    $('#passiveTotal').textContent = currency(t.passMonthly);
+    $('#isaMonthly2').textContent = currency(t.isaMonthly);
+    $('#isaYearly').textContent = currency(t.isaYearly);
+
+    $('#bankTotal_side').textContent = currency(t.bank);
+    $('#assetTotal_side').textContent = currency(t.asset);
+    $('#debtTotal_side').textContent = currency(t.debt);
+    $('#passiveTotal_side').textContent = currency(t.passMonthly);
+    $('#isaMonthly_side').textContent = currency(t.isaMonthly);
+    $('#isaYearly_side').textContent = currency(t.isaYearly);
+  }
+
+  // ------- CALENDAR -------
+  function weekdayLabels(){
+    const base = state.settings.startOnMonday ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    $('#calHead').innerHTML = base.map(d=>`<div class="sub">${d}</div>`).join('');
+  }
+  function monthName(y,m){ return new Date(y,m,1).toLocaleDateString(undefined, {month:'long', year:'numeric'}); }
+  function firstDayOffset(y,m){
+    const d = new Date(y,m,1).getDay(); // 0=Sun
+    return state.settings.startOnMonday ? (d===0?6:d-1) : d;
+  }
+  function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
+  function dayTotal(dateStr){ const day = state.days[dateStr]; return day ? day.total : 0; }
+
+  function renderCalendar(){
+    const {y,m} = state.cal;
+    $('#monthLabel').textContent = monthName(y,m);
+    weekdayLabels();
+
+    const grid = $('#calendar');
+    grid.innerHTML = '';
+    const offset = firstDayOffset(y,m);
+    const dim = daysInMonth(y,m);
+
+    for(let i=0;i<offset;i++){ grid.appendChild(document.createElement('div')); }
+    for(let d=1; d<=dim; d++){
+      const date = new Date(y,m,d);
+      const key = ymd(date);
+      const total = dayTotal(key);
+      const el = document.createElement('div');
+      const cls = total>0 ? 'pos' : total<0 ? 'neg' : 'zero';
+      el.className = `day ${cls}`;
+      el.innerHTML = `
+        <div class="dnum">${d}</div>
+        <div class="amt">${ (total!==0 || state.settings.showZeroDays) ? currency(total) : '' }</div>
+      `;
+      el.addEventListener('click', () => openTx(key));
+      grid.appendChild(el);
+    }
+  }
+
+  // ------- TRANSACTIONS MODAL -------
+  let openDate = null;
+  function openTx(dateStr){
+    openDate = dateStr;
+    $('#txTitle').textContent = 'Transactions';
+    $('#txDateNote').textContent = new Date(dateStr).toLocaleDateString(undefined, {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+    renderTxList();
+    $('#txModal').classList.add('open');
+    $('#txModal').setAttribute('aria-hidden','false');
+  }
+  function closeTx(){
+    $('#txModal').classList.remove('open');
+    $('#txModal').setAttribute('aria-hidden','true');
+    openDate = null;
+  }
+  function renderTxList(){
+    const wrap = $('#txList');
+    wrap.innerHTML = '';
+    const day = state.days[openDate] ||= { entries:[], total:0 };
+    day.entries.forEach((e, idx) => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `
+        <input class="grow" type="text" placeholder="Description" value="${e.desc || ''}">
+        <input class="amount" type="number" step="0.01" placeholder="Amount (+/-)" value="${e.amount ?? 0}">
+        <button class="btn remove">✕</button>
+      `;
+      const [descEl, amtEl, delBtn] = row.children;
+      descEl.addEventListener('input', ev => { e.desc = ev.target.value; recalcDay(openDate, {keepList:true}); });
+      amtEl.addEventListener('input', ev => { e.amount = parseNum(ev.target.value); recalcDay(openDate, {keepList:true}); });
+      delBtn.addEventListener('click', () => { day.entries.splice(idx,1); recalcDay(openDate); });
+      wrap.appendChild(row);
+    });
+    $('#txTotal').textContent = currency(day.total);
+  }
+  function recalcDay(dateStr, opts={}){
+    const day = state.days[dateStr] ||= { entries:[], total:0 };
+    day.total = day.entries.reduce((a,b)=> a + (parseNum(b.amount)||0), 0);
+    saveState();
+    renderSummary();
+    renderCalendar();
+    if(openDate===dateStr){
+      $('#txTotal').textContent = currency(day.total);
+      renderTxList();
+    }
+  }
+
+  // ------- EXPORT / IMPORT -------
+  function exportData(){
+    const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `localvault-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+  function importData(ev){
+    const file = ev.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const data = JSON.parse(reader.result);
+        state = Object.assign(initialState(), data);
+        // ensure migration still applies
+        if((state.passiveCats||[]).length===0 && (state.passive||[]).length){
+          state.passiveCats = [{id:id(), name:'General', items: state.passive.map(p=>({id:id(), name:p.name||'', amount:Number(p.amount)||0}))}];
+          state.passive = [];
+        }
+        saveAndUpdate({rerenderLists:true, renderCats:true, renderSubs:true});
+        ev.target.value = '';
+        alert('Imported.');
+      }catch(e){ alert('Invalid file.'); }
+    };
+    reader.readAsText(file);
+  }
+
+  // ------- NAV / PAGES -------
+  function showPage(name){
+    $$('.nav a').forEach(a => a.classList.toggle('active', a.dataset.page===name));
+    $$('.page').forEach(p => p.classList.remove('active'));
+    const el = $('#page-' + name);
+    if(el) el.classList.add('active');
+    if(location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
+  }
+  function wireNav(){
+    $('#nav').addEventListener('click', (e) => {
+      const a = e.target.closest('a[data-page]');
+      if(!a) return;
+      e.preventDefault();
+      showPage(a.dataset.page);
+    });
+    $$('[data-jump]').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.jump)));
+    const hash = (location.hash||'').replace('#','');
+    if(hash) showPage(hash);
+  }
+
+  // ------- RENDER ROOT -------
+  function saveAndUpdate(opts={}){
+    saveState();
+    renderSummary();
+    renderCalendar();
+    if(opts.rerenderLists){
+      renderList($('#bankList'), state.banks, {name:'Account name', amount:'Balance'});
+      renderList($('#assetList'), state.assets, {name:'Asset name', amount:'Value'});
+      renderList($('#debtList'), state.debts, {name:'Debt name', amount:'Amount owed'});
+    }
+    if(opts.renderCats) renderCategories();
+    if(opts.renderSubs) renderSubs();
+  }
+
+  function wire(){
+    // Currency
+    const currencySelect = $('#currencySelect');
+    currencySelect.value = state.currency;
+    currencySelect.addEventListener('change', e => { state.currency = e.target.value; saveAndUpdate({renderCats:true, renderSubs:true}); });
+
+    // View selector
+    const viewSelect = $('#viewSelect');
+    viewSelect.value = state.settings.view || 'monthly';
+    viewSelect.addEventListener('change', e => { state.settings.view = e.target.value; saveAndUpdate(); });
+
+    // Options
+    $('#includeIsaInNet').checked = state.settings.includeIsaInNet;
+    $('#includeIsaInNet').addEventListener('change', e => { state.settings.includeIsaInNet = e.target.checked; saveAndUpdate(); });
+
+    $('#startOnMonday').checked = state.settings.startOnMonday;
+    $('#startOnMonday').addEventListener('change', e => { state.settings.startOnMonday = e.target.checked; saveAndUpdate(); });
+
+    $('#showZeroDays').checked = state.settings.showZeroDays;
+    $('#showZeroDays').addEventListener('change', e => { state.settings.showZeroDays = e.target.checked; saveAndUpdate(); });
+
+    // Simple lists
+    renderList($('#bankList'), state.banks, {name:'Account name', amount:'Balance'});
+    $('#addBank').addEventListener('click', () => addRow(state.banks, {name:'', amount:0}));
+
+    renderList($('#assetList'), state.assets, {name:'Asset name', amount:'Value'});
+    $('#addAsset').addEventListener('click', () => addRow(state.assets, {name:'', amount:0}));
+
+    renderList($('#debtList'), state.debts, {name:'Debt name', amount:'Amount owed'});
+    $('#addDebt').addEventListener('click', () => addRow(state.debts, {name:'', amount:0}));
+
+    // Passive categories
+    if(!state.passiveCats) state.passiveCats = [];
+    renderCategories();
+    $('#addCategory').addEventListener('click', () => {
+      state.passiveCats.push({id:id(), name:'', items:[]});
+      saveAndUpdate({renderCats:true});
+    });
+
+    // ISA
+    $('#isaPrincipal').value = state.isa.principal ?? 0;
+    $('#isaRate').value = state.isa.rate ?? 0;
+    $('#isaCompound').checked = state.settings.compoundISA;
+    $('#isaPrincipal').addEventListener('input', e => { state.isa.principal = parseNum(e.target.value); saveAndUpdate(); });
+    $('#isaRate').addEventListener('input', e => { state.isa.rate = parseNum(e.target.value); saveAndUpdate(); });
+    $('#isaCompound').addEventListener('change', e => { state.settings.compoundISA = e.target.checked; saveAndUpdate(); });
+
+    // Subscriptions
+    renderSubs();
+    $('#addSub').addEventListener('click', () => { state.subscriptions.push({id:id(), name:'', amount:0, freq:'monthly'}); saveAndUpdate({renderSubs:true}); });
+
+    // Calendar nav
+    $('#prevMonth').addEventListener('click', () => { const d = new Date(state.cal.y, state.cal.m-1, 1); state.cal.y=d.getFullYear(); state.cal.m=d.getMonth(); saveAndUpdate(); });
+    $('#nextMonth').addEventListener('click', () => { const d = new Date(state.cal.y, state.cal.m+1, 1); state.cal.y=d.getFullYear(); state.cal.m=d.getMonth(); saveAndUpdate(); });
+
+    // Modal
+    $('#closeModal').addEventListener('click', closeTx);
+    $('#txModal').addEventListener('click', (e) => { if(e.target.id==='txModal') closeTx(); });
+    $('#addTx').addEventListener('click', () => {
+      const day = state.days[openDate] ||= { entries:[], total:0 };
+      day.entries.push({desc:'', amount:0});
+      recalcDay(openDate, {keepList:true}); // instant add
+    });
+
+    // Export/Import
+    $('#exportBtn').addEventListener('click', exportData);
+    $('#importFile').addEventListener('change', importData);
+
+    // Quick add (Dashboard)
+    $('#quickAdd').addEventListener('click', () => {
+      const amt = parseNum($('#quickAmt').value);
+      if(!amt){ $('#quickNote').textContent = 'Enter a non-zero amount.'; return; }
+      const key = ymd(new Date());
+      const day = state.days[key] ||= { entries:[], total:0 };
+      day.entries.push({desc:'Quick add', amount:amt});
+      recalcDay(key, {});
+      $('#quickAmt').value = '';
+      $('#quickNote').textContent = `Added ${currency(amt)} to ${new Date(key).toLocaleDateString()}.`;
+    });
+
+    // Nav + initial
+    wireNav();
+
+    // First paint
+    saveAndUpdate({rerenderLists:true, renderCats:true, renderSubs:true});
+  }
+
+  // Init
+  function id(){ return Math.random().toString(36).slice(2,9); }
+  wire();
+})();
+</script>
+</body>
+</html>
