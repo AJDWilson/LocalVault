@@ -154,6 +154,17 @@
   .cat{border:1px solid var(--border); border-radius:14px; padding:12px; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.005));}
   .cat-head{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
   .cat-head input{max-width:320px}
+
+  .lv-chat-fab{
+  position:fixed; right:18px; bottom:18px; z-index:50;
+  display:grid; place-items:center; width:52px; height:52px;
+  border-radius:50%; text-decoration:none; font-size:22px; color:#fff;
+  background:linear-gradient(180deg, var(--accent), #1f55e8);
+  border:1px solid var(--border); box-shadow:var(--shadow);
+  }
+  .lv-chat-fab:hover{ transform:translateY(-1px); }
+
+  
 </style>
 
 <!-- Blue SVG favicon (shield-only) -->
@@ -207,6 +218,7 @@
           <a href="#accounts" data-page="accounts">🏦 Accounts</a>
           <a href="#income" data-page="income">💸 Passive Income</a>
           <a href="#subscriptions" data-page="subscriptions">🔁 Subscriptions</a>
+          <a href="chat.html">🤖 AI Assistant</a>
           <a href="#calendar" data-page="calendar">📅 Daily P/L</a>
           <a href="#settings" data-page="settings">⚙️ Settings</a>
         </nav>
@@ -947,6 +959,8 @@
   function id(){ return Math.random().toString(36).slice(2,9); }
   wire();
 })();
+<a href="chat.html" class="lv-chat-fab" title="Open AI Assistant">🤖</a>
 </script>
 </body>
 </html>
+
