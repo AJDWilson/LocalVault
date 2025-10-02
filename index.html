@@ -105,7 +105,7 @@
   .list{display:flex; flex-direction:column; gap:10px}
   .item{display:flex; gap:10px; align-items:center}
   .item input{min-width:0}
-  /* >>> Make name inputs wide enough for ~10 letters */
+  /* Wider name inputs (~10 letters) */
   .item .grow{flex:1.8; min-width:220px;}
   .item input.amount{width:160px}
   .item .remove{border-color:transparent; background:#1b0f13; color:#ff9bb6}
@@ -155,16 +155,15 @@
   .cat-head{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
   .cat-head input{max-width:320px}
 
+  /* Floating chat button */
   .lv-chat-fab{
-  position:fixed; right:18px; bottom:18px; z-index:50;
-  display:grid; place-items:center; width:52px; height:52px;
-  border-radius:50%; text-decoration:none; font-size:22px; color:#fff;
-  background:linear-gradient(180deg, var(--accent), #1f55e8);
-  border:1px solid var(--border); box-shadow:var(--shadow);
+    position:fixed; right:18px; bottom:18px; z-index:50;
+    display:grid; place-items:center; width:52px; height:52px;
+    border-radius:50%; text-decoration:none; font-size:22px; color:#fff;
+    background:linear-gradient(180deg, var(--accent), #1f55e8);
+    border:1px solid var(--border); box-shadow:var(--shadow);
   }
   .lv-chat-fab:hover{ transform:translateY(-1px); }
-
-  
 </style>
 
 <!-- Blue SVG favicon (shield-only) -->
@@ -496,13 +495,11 @@
         view:'monthly'
       },
       banks:[], assets:[], debts:[],
-      /* v2 passive income with categories */
-      passiveCats:[],                     // [{id,name,items:[{id,name,amount}]}]
-      passive:[],                         // legacy (migrated to a Default category)
+      passiveCats:[],               // [{id,name,items:[{id,name,amount}]}]
+      passive:[],                   // legacy (migrated)
       isa:{ principal:0, rate:0 },
-      /* subscriptions */
-      subscriptions:[],                   // [{id,name,amount,freq:'weekly'|'monthly'|'yearly'}]
-      days:{},                            // 'YYYY-MM-DD': { entries:[{desc, amount}], total:number }
+      subscriptions:[],             // [{id,name,amount,freq}]
+      days:{},                      // 'YYYY-MM-DD': { entries:[{desc, amount}], total:number }
       cal:{ y: today.getFullYear(), m: today.getMonth() }
     }
   }
@@ -517,12 +514,12 @@
         isa:Object.assign(base.isa, s.isa||{}),
         cal:Object.assign(base.cal, s.cal||{})
       });
-      // Migration: move legacy passive array into a default category if needed
+      // Migration: legacy passive -> default category
       if((merged.passiveCats||[]).length===0 && (merged.passive||[]).length){
         merged.passiveCats = [{
           id:id(), name:'General', items: merged.passive.map(p=>({id:id(), name:p.name||'', amount:Number(p.amount)||0}))
         }];
-        merged.passive = []; // clear legacy
+        merged.passive = [];
       }
       return merged;
     }catch(e){ console.warn('Failed to load, resetting.', e); return initialState(); }
@@ -536,7 +533,7 @@
   function id(){ return Math.random().toString(36).slice(2,9); }
   function ymd(d){ return d.toISOString().slice(0,10); }
 
-  // ------- DYNAMIC LISTS (simple lists) -------
+  // ------- DYNAMIC LISTS -------
   function renderList(container, list, labels){
     container.innerHTML = '';
     list.forEach((item, idx) => {
@@ -585,7 +582,6 @@
       addBtn.addEventListener('click', ()=>{ cat.items.push({id:id(), name:'', amount:0}); saveAndUpdate({renderCats:true}); });
       delBtn.addEventListener('click', ()=>{ state.passiveCats.splice(cIdx,1); saveAndUpdate({renderCats:true}); });
 
-      // Render items in the category
       cat.items.forEach((item, iIdx) => {
         const row = document.createElement('div');
         row.className = 'item';
@@ -665,7 +661,6 @@
     const isaP = Number(state.isa.principal)||0;
     const includeIsa = !!state.settings.includeIsaInNet;
     const net = bank + asset + (includeIsa? isaP : 0) - debt;
-    // ISA payout baseline (monthly)
     const r = (Number(state.isa.rate)||0)/100;
     const compound = !!state.settings.compoundISA;
     const monthlyRate = compound ? (Math.pow(1+r,1/12)-1) : (r/12);
@@ -682,7 +677,6 @@
     const t = totals();
     const view = state.settings.view || 'monthly';
 
-    // Dashboard stats
     $('#netWorth').textContent = currency(t.net);
     $('#bankTotal').textContent = currency(t.bank);
 
@@ -692,13 +686,11 @@
     $('#isaMonthly').textContent = formatByView(t.isaMonthly, view);
     $('#isaPeriod').textContent = view[0].toUpperCase()+view.slice(1);
 
-    // Costs card
     const subsT = subsTotals();
     const subsByView = view==='weekly'? subsT.weekly : (view==='yearly'? subsT.yearly : subsT.monthly);
     $('#subsStat').textContent = currency(subsByView);
     $('#subPeriod').textContent = view[0].toUpperCase()+view.slice(1);
 
-    // Glance + side panels
     $('#bankTotal2').textContent = currency(t.bank);
     $('#assetTotal').textContent = currency(t.asset);
     $('#debtTotal').textContent = currency(t.debt);
@@ -708,7 +700,7 @@
 
     $('#bankTotal_side').textContent = currency(t.bank);
     $('#assetTotal_side').textContent = currency(t.asset);
-    $('#debtTotal_side').textContent = currency(t.debt);
+    $('#debtTotal_side').textContent = currency(t.debts);
     $('#passiveTotal_side').textContent = currency(t.passMonthly);
     $('#isaMonthly_side').textContent = currency(t.isaMonthly);
     $('#isaYearly_side').textContent = currency(t.isaYearly);
@@ -821,7 +813,6 @@
       try{
         const data = JSON.parse(reader.result);
         state = Object.assign(initialState(), data);
-        // ensure migration still applies
         if((state.passiveCats||[]).length===0 && (state.passive||[]).length){
           state.passiveCats = [{id:id(), name:'General', items: state.passive.map(p=>({id:id(), name:p.name||'', amount:Number(p.amount)||0}))}];
           state.passive = [];
@@ -929,7 +920,7 @@
     $('#addTx').addEventListener('click', () => {
       const day = state.days[openDate] ||= { entries:[], total:0 };
       day.entries.push({desc:'', amount:0});
-      recalcDay(openDate, {keepList:true}); // instant add
+      recalcDay(openDate, {keepList:true});
     });
 
     // Export/Import
@@ -955,12 +946,12 @@
     saveAndUpdate({rerenderLists:true, renderCats:true, renderSubs:true});
   }
 
-  // Init
-  function id(){ return Math.random().toString(36).slice(2,9); }
+  // Boot
   wire();
 })();
-<a href="chat.html" class="lv-chat-fab" title="Open AI Assistant">🤖</a>
 </script>
+
+<!-- FAB must be OUTSIDE the <script> -->
+<a href="chat.html" class="lv-chat-fab" title="Open AI Assistant">🤖</a>
 </body>
 </html>
-
