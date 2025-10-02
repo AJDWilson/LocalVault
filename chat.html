@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LocalVault — AI Assistant</title>
+<meta name="theme-color" content="#0b0d12" />
+<style>
+  :root{
+    --bg:#0b0d12; --panel:#111522; --panel-2:#0e1320;
+    --accent:#2f6dff; --accent-2:#8ec5ff;
+    --text:#e8edf6; --muted:#9aa7bd; --border:rgba(255,255,255,.08);
+    --danger:#ff6b6b; --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--text);
+    font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+    background:
+      radial-gradient(1400px 900px at 75% -15%, rgba(46,109,255,.18) 0%, rgba(46,109,255,0) 55%) fixed no-repeat,
+      radial-gradient(1400px 900px at 20% -20%, rgba(142,197,255,.12) 0%, rgba(142,197,255,0) 50%) fixed no-repeat,
+      var(--bg);
+    background-size:cover,cover,cover;
+    min-height:100vh;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:18px}
+  /* Header */
+  .head{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;
+  }
+  .brand{display:flex; align-items:center; gap:10px}
+  .logo{display:grid; place-items:center}
+  .word{display:flex; flex-direction:column}
+  .name{font-weight:800; letter-spacing:.3px}
+  .tag{font-size:12px; color:var(--muted)}
+  .back{
+    display:inline-flex; align-items:center; gap:8px;
+    border:1px solid var(--border); border-radius:12px; padding:10px 12px; text-decoration:none; color:var(--text);
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); box-shadow:var(--shadow);
+  }
+  .back:hover{border-color:rgba(255,255,255,.16); transform:translateY(-1px)}
+  /* Chat card */
+  .card{
+    border:1px solid var(--border); border-radius:var(--radius);
+    background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+    box-shadow:var(--shadow);
+    display:flex; flex-direction:column; height:min(78vh,820px); overflow:hidden;
+  }
+  .msgs{flex:1; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:12px;}
+  .msg{max-width:85%; padding:10px 12px; border-radius:12px; border:1px solid var(--border); white-space:pre-wrap; word-break:break-word}
+  .me{align-self:flex-end; background:var(--panel-2)}
+  .ai{align-self:flex-start; background:#0f1422}
+  .sys{align-self:center; color:var(--muted); font-size:12px; border:none; background:transparent}
+  .thinking{opacity:.8}
+  .stamp{display:block; margin-top:6px; font-size:11px; color:var(--muted)}
+  .bar{display:flex; gap:8px; padding:12px; background:rgba(0,0,0,.25); border-top:1px solid var(--border)}
+  textarea{
+    flex:1; min-height:44px; max-height:160px; resize:vertical;
+    border:1px solid var(--border); border-radius:12px; padding:10px 12px;
+    background:#0c101a; color:var(--text); outline:none;
+  }
+  .btn{
+    border:1px solid var(--border); border-radius:12px; padding:12px 14px; color:#fff;
+    background:linear-gradient(180deg, var(--accent), #1f55e8); cursor:pointer; white-space:nowrap;
+  }
+  .btn:disabled{opacity:.6; cursor:not-allowed}
+  .small{font-size:12px; color:var(--muted)}
+  .row{display:flex; gap:8px; align-items:center; justify-content:space-between; padding:0 2px 8px}
+  .hint{color:var(--muted); font-size:12px}
+  @media (max-width:640px){ .name{font-size:15px} .tag{display:none} .back span{display:none} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <!-- LV shield (blue) -->
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+            <defs><linearGradient id="lvb" x1="4" y1="4" x2="20" y2="20"><stop stop-color="#2f6dff"/><stop offset="1" stop-color="#8ec5ff"/></linearGradient></defs>
+            <path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(#lvb)"/>
+            <circle cx="12" cy="11.2" r="2" fill="#0a0f1a"/><rect x="11.2" y="13.2" width="1.6" height="3.1" rx="0.8" fill="#0a0f1a"/>
+          </svg>
+        </div>
+        <div class="word">
+          <div class="name">LocalVault — AI Assistant</div>
+          <div class="tag">Private. Local. Fast.</div>
+        </div>
+      </div>
+      <a class="back" href="index.html" title="Back to app">← <span>Back to App</span></a>
+    </div>
+
+    <div class="card">
+      <div id="msgs" class="msgs">
+        <div class="msg ai">
+Hi! I’m your LocalVault helper.
+Ask me about budgeting, subscriptions, ISA math, or how to use features in the app.
+Tip: Shift+Enter makes a new line.
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="small hint">Your questions go through a secure serverless proxy at <code>/api/chat</code>. Keys never sit in the browser.</div>
+      </div>
+
+      <div class="bar">
+        <textarea id="input" placeholder="Type your question…"></textarea>
+        <button id="send" class="btn">Send</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const API_ENDPOINT = '/api/chat'; // same Vercel project = works out of the box
+
+  const $ = s => document.querySelector(s);
+  const msgsEl = $('#msgs');
+  const inputEl = $('#input');
+  const sendBtn = $('#send');
+
+  const STORE_KEY = 'lv_chat_history_v1';
+
+  function nowStamp(){
+    const d = new Date();
+    return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function addMsg(role, text, opts={}){
+    const el = document.createElement('div');
+    el.className = 'msg ' + (role==='user'?'me': role==='assistant'?'ai':'sys');
+    el.textContent = text;
+    if(opts.thinking){ el.classList.add('thinking'); }
+    if(opts.stamp){
+      const st = document.createElement('span');
+      st.className = 'stamp';
+      st.textContent = opts.stamp;
+      el.appendChild(st);
+    }
+    msgsEl.appendChild(el);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+    return el;
+  }
+
+  function saveHistory(){
+    const bubbles = [...msgsEl.querySelectorAll('.msg')];
+    const msgs = [];
+    for(const b of bubbles){
+      if(b.classList.contains('me')) msgs.push({role:'user', content:b.childNodes[0]?.nodeValue ?? ''});
+      else if(b.classList.contains('ai')) msgs.push({role:'assistant', content:b.childNodes[0]?.nodeValue ?? ''});
+    }
+    localStorage.setItem(STORE_KEY, JSON.stringify(msgs.slice(-40))); // cap size
+  }
+
+  function loadHistory(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return;
+      const arr = JSON.parse(raw);
+      for(const m of arr){
+        addMsg(m.role, m.content);
+      }
+    }catch{ /* ignore */ }
+  }
+
+  async function send(){
+    const text = inputEl.value.trim();
+    if(!text) return;
+    inputEl.value = '';
+    addMsg('user', text, {stamp: nowStamp()});
+    const thinking = addMsg('assistant', '…', {thinking:true});
+
+    disable(true);
+    try{
+      const payload = {
+        // Pick a sensible small model for cost/latency. You can change server-side later.
+        model: 'gpt-4o-mini',
+        messages: [
+          {role:'system', content:'You are LocalVault’s concise finance assistant. Be practical. If asked about the app, answer specifically for LocalVault.'},
+          ...collectTranscript()
+        ]
+      };
+      const res = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok){
+        const err = await res.text();
+        thinking.textContent = `Error ${res.status}: ${err}`;
+      }else{
+        const data = await res.json();
+        const reply = data?.choices?.[0]?.message?.content || '(no reply)';
+        thinking.classList.remove('thinking');
+        thinking.textContent = reply;
+        const stamp = document.createElement('span');
+        stamp.className = 'stamp';
+        stamp.textContent = nowStamp();
+        thinking.appendChild(stamp);
+      }
+    }catch(e){
+      thinking.textContent = 'Network error: ' + e.message;
+    }finally{
+      saveHistory();
+      disable(false);
+      inputEl.focus();
+    }
+  }
+
+  function collectTranscript(){
+    const nodes = [...msgsEl.querySelectorAll('.msg')];
+    const msgs = [];
+    for(const n of nodes){
+      const text = n.childNodes[0]?.nodeValue ?? '';
+      if(n.classList.contains('me')) msgs.push({role:'user', content:text});
+      else if(n.classList.contains('ai')) msgs.push({role:'assistant', content:text});
+    }
+    // include the new user question from input? already appended above.
+    return msgs.slice(-10);
+  }
+
+  function disable(on){
+    sendBtn.disabled = on;
+    inputEl.disabled = on;
+  }
+
+  // Events
+  sendBtn.addEventListener('click', send);
+  inputEl.addEventListener('keydown', (e) => {
+    if(e.key==='Enter' && !e.shiftKey){
+      e.preventDefault();
+      send();
+    }
+  });
+
+  // Boot
+  loadHistory();
+  // Auto focus on desktop
+  if(window.matchMedia('(pointer:fine)').matches) inputEl.focus();
+})();
+</script>
+</body>
+</html>
