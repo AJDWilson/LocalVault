@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
@@ -15,10 +15,9 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({ model, messages })
     });
-
     const data = await r.json();
     res.status(r.status).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-}
+};
