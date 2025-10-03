@@ -36,70 +36,52 @@
   a{color:var(--accent); text-decoration:none}
   .wrap{max-width:1200px; margin:28px auto; padding:0 18px;}
 
-  /* Layout: Sidebar + Content */
+  /* Layout: Sidebar + Content (desktop grid) */
   .app{display:grid; grid-template-columns: 240px 1fr; gap:16px;}
+  @media (max-width: 900px){ .app{grid-template-columns: 1fr;} }
 
-  header{display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:18px;}
-  .brand{display:flex; gap:14px; align-items:center;}
-
-  /* Hamburger (mobile only) */
-  .menu-btn{
-    display:none; place-items:center; width:42px; height:42px; border-radius:12px;
-    border:1px solid var(--border);
-    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
-    color:var(--text); box-shadow:var(--shadow); cursor:pointer;
+  /* HEADER */
+  header{
+    display:flex; flex-wrap:wrap; gap:12px;
+    align-items:center; justify-content:space-between; margin-bottom:18px;
   }
-  .menu-btn svg{width:22px; height:22px}
-
-  /* Remove blue tile behind logo and make the icon larger */
-  .logo{
-    width:56px; height:56px; border-radius:0; background:none; box-shadow:none;
-    display:grid; place-items:center;
+  .brand-wrap{display:flex; align-items:center; gap:10px}
+  .hamburger{
+    display:none;
+    width:40px; height:40px; border-radius:12px; border:1px solid var(--border);
+    background:var(--panel-2); color:var(--text); box-shadow:var(--shadow);
+    align-items:center; justify-content:center; cursor:pointer;
   }
-  .tagline{font-size:12px; color:var(--muted)}
+  .hamburger svg{width:20px; height:20px}
+  @media (max-width:900px){ .hamburger{display:inline-flex;} }
 
-  /* Sidebar */
-  aside{
-    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:12px;
-    box-shadow:var(--shadow);
-    display:flex; flex-direction:column; gap:8px;
-    position:relative;
-  }
-  .close-drawer{display:none; position:absolute; top:10px; right:10px; width:36px; height:36px;
-    border:1px solid var(--border); border-radius:10px; background:var(--panel-2); color:var(--text);
-    place-items:center; box-shadow:var(--shadow); cursor:pointer;
-  }
+  /* Shield logo — same as favicon / AI page */
+  .logo{width:40px; height:40px; display:grid; place-items:center}
+  .wordmark{display:flex; align-items:center; gap:8px; font-weight:800; letter-spacing:.3px}
+  .wordmark .name{font-size:18px; color:#dfe9ff}
+  .wordmark .tag{font-size:12px; color:var(--muted)}
+  @media (max-width:520px){ .wordmark .tag{display:none} }
 
-  .nav-section{margin-bottom:8px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.25px}
-  .nav{display:flex; flex-direction:column; gap:8px;}
-  .nav a{
-    display:flex; align-items:center; gap:10px;
-    padding:10px 12px; border-radius:12px; border:1px solid var(--border);
-    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
-    color:var(--text);
-  }
-  .nav a.active{background:var(--panel-2); border-color:rgba(255,255,255,.14); box-shadow:inset 0 0 0 1px rgba(142,197,255,.15)}
-
+  /* Top-right controls (uniform height) */
   .toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-  .btn, button{
+  .btn, button, select, .btn-like{
     appearance:none; border:1px solid var(--border); color:var(--text);
     background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
-    padding:10px 12px; border-radius:12px; cursor:pointer;
+    height:40px; padding:0 12px; border-radius:12px; cursor:pointer;
     transition:.15s transform ease,.15s background ease,.15s border-color ease;
-    box-shadow:var(--shadow);
+    box-shadow:var(--shadow); display:inline-flex; align-items:center; justify-content:center;
   }
-  .btn:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.16)}
+  .btn:hover, .btn-like:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.16)}
   .btn.primary{background:linear-gradient(180deg,var(--accent),#1f55e8); color:white; border-color:transparent}
-  .btn.ghost{background:var(--panel-2)}
-  .btn.small{font-size:12px; padding:8px 10px}
-  select, input[type="text"], input[type="number"]{
-    width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border);
-    background:var(--input); color:var(--text); outline:none;
-  }
+  .btn.ghost, .btn-like{background:var(--panel-2)}
+  .btn.small{font-size:12px; height:34px; padding:0 10px}
   label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+  .switch{display:flex; align-items:center; gap:8px}
+  @media (max-width:900px){
+    .toolbar{width:100%; justify-content:flex-end}
+    .switch span{display:none} /* keep header tighter on mobile */
+  }
+
   .grid{display:grid; gap:14px}
   @media (min-width:900px){ .grid.cols-4{grid-template-columns:repeat(4,1fr)} }
   @media (min-width:900px){ .grid.cols-3{grid-template-columns:repeat(3,1fr)} }
@@ -118,8 +100,7 @@
   .list{display:flex; flex-direction:column; gap:10px}
   .item{display:flex; gap:10px; align-items:center}
   .item input{min-width:0}
-  /* Wider name inputs (~10 letters) */
-  .item .grow{flex:1.8; min-width:220px;}
+  .item .grow{flex:1.8; min-width:220px;} /* ~10 letters */
   .item input.amount{width:160px}
   .item .remove{border-color:transparent; background:#1b0f13; color:#ff9bb6}
   .sum{font-weight:700}
@@ -158,15 +139,53 @@
   .page{display:none}
   .page.active{display:block}
 
-  /* Wordmark styling */
-  .wordmark{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px}
-  .wordmark .name{font-size:18px; color:#dfe9ff}
-  .wordmark .tag{font-size:12px; color:var(--muted)}
-
   /* Passive categories */
   .cat{border:1px solid var(--border); border-radius:14px; padding:12px; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.005));}
   .cat-head{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
   .cat-head input{max-width:320px}
+
+  /* Sidebar (desktop static; mobile off-canvas) */
+  aside{
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:12px;
+    box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .nav-section{margin-bottom:8px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.25px}
+  .nav{display:flex; flex-direction:column; gap:8px;}
+  .nav a{
+    display:flex; align-items:center; gap:10px;
+    padding:12px; border-radius:12px; border:1px solid var(--border);
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
+    color:var(--text);
+  }
+  .nav a.active{background:var(--panel-2); border-color:rgba(255,255,255,.14); box-shadow:inset 0 0 0 1px rgba(142,197,255,.15)}
+
+  /* Off-canvas behavior */
+  .drawer-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; opacity:0; transition:opacity .22s ease;
+    z-index:60;
+  }
+  @media (max-width:900px){
+    aside{
+      position:fixed; top:0; bottom:0; left:0; width:min(86vw,360px);
+      margin:0; border-radius:0 16px 16px 0; z-index:70;
+      transform:translateX(-105%); transition:transform .25s cubic-bezier(.2,.8,.2,1);
+      background:var(--panel); /* solid background for readability */
+    }
+    body.drawer-open .drawer-backdrop{display:block; opacity:1;}
+    body.drawer-open aside{transform:none;}
+    .mobile-drawer-head{
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      margin-bottom:8px; color:var(--muted); font-size:12px; text-transform:uppercase;
+    }
+    .drawer-close{
+      width:36px; height:36px; display:grid; place-items:center; border-radius:10px;
+      border:1px solid var(--border); background:var(--panel-2); color:var(--text); box-shadow:var(--shadow);
+    }
+  }
 
   /* Floating chat button */
   .lv-chat-fab{
@@ -177,58 +196,31 @@
     border:1px solid var(--border); box-shadow:var(--shadow);
   }
   .lv-chat-fab:hover{ transform:translateY(-1px); }
-
-  /* ---------- Mobile drawer styles ---------- */
-  @media (max-width: 900px){
-    .app{grid-template-columns: 1fr}
-    .menu-btn{display:grid}
-    /* Off-canvas drawer */
-    aside{
-      position:fixed; left:0; top:0; bottom:0; height:100vh;
-      width:min(85vw, 320px);
-      border-left:none; border-top:none; border-bottom:none; border-right:1px solid var(--border);
-      border-radius:0 16px 16px 0;
-      transform:translateX(-110%);
-      transition:transform .28s ease, box-shadow .28s ease;
-      z-index:60; padding-top:14px;
-    }
-    aside.open{ transform:translateX(0); box-shadow: 0 25px 60px rgba(0,0,0,.5); }
-    .close-drawer{ display:grid; }
-    /* Backdrop */
-    .backdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,.45);
-      opacity:0; pointer-events:none; transition:opacity .28s ease; z-index:50;
-    }
-    .backdrop.show{ opacity:1; pointer-events:auto; }
-  }
 </style>
 
-<!-- Blue SVG favicon (shield-only) -->
+<!-- Favicon: shield (matches header logo & AI page) -->
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="g" x1="4" y1="4" x2="20" y2="20"><stop stop-color="%232f6dff"/><stop offset="1" stop-color="%238ec5ff"/></linearGradient></defs><path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(%23g)"/><circle cx="12" cy="11.1" r="2" fill="%230b0d12"/><rect x="11.25" y="13.1" width="1.5" height="3" rx=".75" fill="%230b0d12"/></svg>'>
 <meta name="theme-color" content="#0b0d12">
 </head>
 <body>
   <div class="wrap">
     <header>
-      <!-- hamburger (mobile) -->
-      <button id="menuBtn" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="sideMenu">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      </button>
+      <div class="brand-wrap">
+        <!-- Mobile hamburger -->
+        <button id="menuBtn" class="hamburger" aria-label="Open menu" aria-controls="drawer" aria-expanded="false" title="Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+        </button>
 
-      <div class="brand">
-        <!-- Bigger, tile-less shield logo -->
-        <div class="logo" aria-label="LocalVault logo" title="LocalVault">
-          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <defs>
-              <linearGradient id="lvb" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
-                <stop stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent-2)"/>
-              </linearGradient>
-            </defs>
+        <!-- Shield logo (same as favicon / AI) -->
+        <div class="logo" aria-label="LocalVault">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <defs><linearGradient id="lvb" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+              <stop stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent-2)"/></linearGradient></defs>
             <path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(#lvb)"/>
             <circle cx="12" cy="11.2" r="2" fill="#0a0f1a"/><rect x="11.2" y="13.2" width="1.6" height="3.1" rx="0.8" fill="#0a0f1a"/>
-            <path d="M7.2 7.4h1.9v7.2H7.2V7.4zm9.6 7.2h-2l-3.2-7.2h1.9l3.3 7.2z" fill="#0a0f1a" opacity=".65"/>
           </svg>
         </div>
+
         <div class="wordmark">
           <span class="name">LocalVault</span>
           <span class="tag">Private. Local. Fast.</span>
@@ -246,15 +238,20 @@
           </select>
         </label>
         <button class="btn ghost" id="exportBtn" title="Download your data as JSON">Export</button>
-        <label class="btn ghost" for="importFile" title="Import previously exported data" style="cursor:pointer">Import</label>
+        <label class="btn-like" for="importFile" title="Import previously exported data" style="cursor:pointer">Import</label>
         <input id="importFile" type="file" accept="application/json" style="display:none">
       </div>
     </header>
 
-    <div class="app">
-      <!-- SIDEBAR NAV (drawer on mobile) -->
-      <aside id="sideMenu" aria-hidden="true">
-        <button id="closeMenu" class="close-drawer" aria-label="Close menu">✕</button>
+    <!-- Mobile drawer backdrop -->
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+    <div class="app" id="drawer">
+      <!-- SIDEBAR NAV -->
+      <aside>
+        <div class="mobile-drawer-head" aria-hidden="true" style="display:none">Menu
+          <button class="drawer-close" id="drawerClose" aria-label="Close menu">×</button>
+        </div>
         <div class="nav-section">Menu</div>
         <nav class="nav" id="nav">
           <a href="#dashboard" data-page="dashboard" class="active">🏠 Dashboard</a>
@@ -515,15 +512,11 @@
           <defs><linearGradient id="lvbf" x1="4" y1="4" x2="20" y2="20"><stop stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent-2)"/></linearGradient></defs>
           <path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(#lvbf)"/>
           <circle cx="12" cy="11.2" r="2" fill="#0a0f1a"/><rect x="11.2" y="13.2" width="1.6" height="3.1" rx="0.8" fill="#0a0f1a"/>
-          <path d="M7.2 7.4h1.9v7.2H7.2V7.4zm9.6 7.2h-2l-3.2-7.2h1.9l3.3 7.2z" fill="#0a0f1a" opacity=".65"/>
         </svg>
         <span>LocalVault — Private. Local. Fast.</span>
       </div>
     </footer>
   </div>
-
-  <!-- Backdrop for mobile drawer -->
-  <div id="menuBackdrop" class="backdrop" hidden></div>
 
 <script>
 (() => {
@@ -561,6 +554,7 @@
         isa:Object.assign(base.isa, s.isa||{}),
         cal:Object.assign(base.cal, s.cal||{})
       });
+      // Migration: legacy passive -> default category
       if((merged.passiveCats||[]).length===0 && (merged.passive||[]).length){
         merged.passiveCats = [{
           id:id(), name:'General', items: merged.passive.map(p=>({id:id(), name:p.name||'', amount:Number(p.amount)||0}))
@@ -878,36 +872,16 @@
     const el = $('#page-' + name);
     if(el) el.classList.add('active');
     if(location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
+    // Close drawer on mobile after navigation
+    document.body.classList.remove('drawer-open');
+    $('#menuBtn')?.setAttribute('aria-expanded','false');
   }
-
-  // Drawer helpers
-  const aside = $('#sideMenu');
-  const menuBtn = $('#menuBtn');
-  const closeBtn = $('#closeMenu');
-  const backdrop = $('#menuBackdrop');
-  function openMenu(){
-    aside.classList.add('open');
-    aside.setAttribute('aria-hidden','false');
-    backdrop.classList.add('show'); backdrop.hidden = false;
-    menuBtn.setAttribute('aria-expanded','true');
-    document.body.style.overflow='hidden';
-  }
-  function closeMenu(){
-    aside.classList.remove('open');
-    aside.setAttribute('aria-hidden','true');
-    backdrop.classList.remove('show'); setTimeout(()=>backdrop.hidden=true, 280);
-    menuBtn.setAttribute('aria-expanded','false');
-    document.body.style.overflow='';
-  }
-
   function wireNav(){
     $('#nav').addEventListener('click', (e) => {
       const a = e.target.closest('a[data-page]');
       if(!a) return;
       e.preventDefault();
       showPage(a.dataset.page);
-      // close drawer on mobile after choosing
-      if (window.matchMedia('(max-width: 900px)').matches) closeMenu();
     });
     $$('[data-jump]').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.jump)));
     const hash = (location.hash||'').replace('#','');
@@ -1008,14 +982,24 @@
       $('#quickNote').textContent = `Added ${currency(amt)} to ${new Date(key).toLocaleDateString()}.`;
     });
 
-    // Drawer wiring
-    menuBtn.addEventListener('click', () => aside.classList.contains('open') ? closeMenu() : openMenu());
-    closeBtn.addEventListener('click', closeMenu);
-    backdrop.addEventListener('click', closeMenu);
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeMenu(); });
-
-    // Nav + initial
+    // Desktop/Mobile nav wiring
     wireNav();
+
+    // Drawer controls (mobile)
+    const menuBtn = $('#menuBtn');
+    const backdrop = $('#drawerBackdrop');
+    const drawerClose = $('#drawerClose');
+    const body = document.body;
+
+    const openDrawer = () => { body.classList.add('drawer-open'); menuBtn.setAttribute('aria-expanded','true'); };
+    const closeDrawer = () => { body.classList.remove('drawer-open'); menuBtn.setAttribute('aria-expanded','false'); };
+
+    menuBtn.addEventListener('click', () => body.classList.contains('drawer-open') ? closeDrawer() : openDrawer());
+    backdrop.addEventListener('click', closeDrawer);
+    drawerClose?.addEventListener('click', closeDrawer);
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeDrawer(); });
+
+    // First paint
     saveAndUpdate({rerenderLists:true, renderCats:true, renderSubs:true});
   }
 
@@ -1024,7 +1008,7 @@
 })();
 </script>
 
-<!-- FAB must be OUTSIDE the <script> -->
+<!-- FAB -->
 <a href="chat.html" class="lv-chat-fab" title="Open AI Assistant">🤖</a>
 </body>
 </html>
