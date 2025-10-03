@@ -1,8 +1,7 @@
-// LocalVault — AI Assistant client
-// Sends chat messages to /api/chat and (optionally) includes a compact snapshot
-// of the user's LocalVault data read from localStorage ('wealthTrackerV1').
+// LocalVault — AI Assistant client (v3)
+// Robust to DOM timing & CDN caching. Includes LocalVault snapshot with user consent.
 
-(function(){
+window.addEventListener('DOMContentLoaded', () => {
   const chatEl  = document.getElementById('chat');
   const inputEl = document.getElementById('input');
   const sendEl  = document.getElementById('send');
@@ -10,16 +9,22 @@
   const shareEl = document.getElementById('shareToggle');
   const dataChip = document.getElementById('dataChip');
 
+  if (!chatEl || !inputEl || !sendEl) {
+    // If this ever logs, the script loaded before DOM; but DOMContentLoaded should prevent that.
+    console.error('Chat DOM not ready.');
+    return;
+  }
+
   const CHAT_KEY = 'lv_chat_history_v1';
 
   // ---------- UI helpers ----------
-  function el(tag, cls, text){
+  const el = (tag, cls, text) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
     if (text != null) e.textContent = text;
     return e;
-  }
-  function scrollBottom(){ chatEl.scrollTop = chatEl.scrollHeight; }
+  };
+  const scrollBottom = () => { chatEl.scrollTop = chatEl.scrollHeight; };
 
   function renderMessage(role, content){
     const row = el('div', 'msg ' + (role === 'user' ? 'me' : role === 'assistant' ? 'ai' : 'sys'));
@@ -31,7 +36,7 @@
   }
 
   function saveHistory(){
-    const rows = [...chatEl.querySelectorAll('.msg .bubble')].map((b,i)=>{
+    const rows = [...chatEl.querySelectorAll('.msg .bubble')].map((b)=>{
       const row = b.parentElement;
       const role = row.classList.contains('me') ? 'user' :
                    row.classList.contains('ai') ? 'assistant' : 'system';
@@ -63,7 +68,7 @@
         (acc, c) => acc + (c.items||[]).reduce((a,b)=> a + (toNum(b.amount)||0), 0)
       , 0);
 
-      // ISA math (monthly/yearly)
+      // ISA math
       const principal = toNum(s?.isa?.principal || 0);
       const rate = toNum(s?.isa?.rate || 0) / 100;
       const compound = !!(s?.settings?.compoundISA);
@@ -71,7 +76,7 @@
       const isaMonthly = principal * monthlyRate;
       const isaYearly = principal * (compound ? (Math.pow(1+monthlyRate,12)-1) : rate);
 
-      // small daily summary: last 30 non-zero days (date + total)
+      // recent daily P/L (last up to 30 non-zero)
       let recent = [];
       try{
         const entries = Object.entries(s.days || {});
@@ -106,7 +111,6 @@
     }
   }
 
-  // Chip indicator of data availability
   function refreshDataChip(){
     const ctx = getLVContext();
     if (ctx) {
@@ -126,7 +130,6 @@
     const text = (inputEl.value || '').trim();
     if (!text) return;
 
-    // UI: add user message
     renderMessage('user', text);
     saveHistory();
     inputEl.value = '';
@@ -139,7 +142,6 @@
       const includeData = !!shareEl.checked;
       const context = includeData ? getLVContext() : null;
 
-      // Primary: post to your serverless route (expects `{messages, context}`)
       const history = [...chatEl.querySelectorAll('.msg .bubble')].map(b=>{
         const role = b.parentElement.classList.contains('me') ? 'user'
                    : b.parentElement.classList.contains('ai') ? 'assistant'
@@ -156,8 +158,7 @@
       const data = await res.json();
 
       if (!res.ok) {
-        // Fallback: if your server route doesn't accept `context`,
-        // we try again by inlining the JSON into a system message.
+        // Fallback: inline snapshot as system message if route doesn't accept `context`
         if (context) {
           const sysInline = {
             role: 'system',
@@ -179,7 +180,7 @@ ${JSON.stringify(context)}`
           renderMessage('assistant', msg2);
           saveHistory();
         } else {
-          throw new Error(JSON.stringify(data));
+          throw new Error(data?.error?.message || 'Request failed');
         }
       } else {
         const msg = data.choices?.[0]?.message?.content || '[No response]';
@@ -197,7 +198,6 @@ ${JSON.stringify(context)}`
   }
 
   // ---------- Wire up ----------
-  // Intro (only when there is no saved history)
   if (!loadHistory()) {
     renderMessage('assistant',
 `Hi! I’m your LocalVault helper.
@@ -226,4 +226,4 @@ Tip: toggle “Include my LocalVault data” to let me use your numbers.`);
   });
 
   shareEl.addEventListener('change', refreshDataChip);
-})();
+});
