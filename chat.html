@@ -9,7 +9,9 @@
   :root{
     --bg:#0b0d12; --panel:#111522; --panel-2:#0e1320;
     --accent:#2f6dff; --accent-2:#8ec5ff; --text:#e8edf6; --muted:#9aa7bd;
-    --border:rgba(255,255,255,0.08); --input:#0c101a; --shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset; --radius:16px;
+    --border:rgba(255,255,255,0.08); --input:#0c101a;
+    --shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset;
+    --radius:16px;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -36,10 +38,33 @@
   .muted{color:var(--muted)} .small{font-size:12px}
   .switch-row{display:flex; gap:8px; align-items:center}
 
-  .chat{display:flex; flex-direction:column; gap:10px; padding:12px; min-height:60vh; max-height:74vh; overflow:auto;}
-  .msg{display:flex; gap:10px; align-items:flex-start}
-  .bubble{padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:var(--panel-2); max-width:80%; white-space:pre-wrap; word-wrap:break-word;}
-  .me .bubble{background:#152038} .ai .bubble{background:#0f1629} .sys{opacity:.9}
+  /* CHAT AREA */
+  .chat{
+    display:flex; flex-direction:column; gap:10px;
+    padding:12px; min-height:60vh; max-height:74vh; overflow:auto;
+  }
+  .msg{display:flex; gap:10px; align-items:flex-start; width:100%}
+  .msg.ai{justify-content:flex-start;}     /* assistant on the LEFT   */
+  .msg.me{justify-content:flex-end;}       /* user on the RIGHT       */
+  .msg.sys{justify-content:center; opacity:.9}
+
+  .bubble{
+    padding:10px 12px; border-radius:14px; border:1px solid var(--border);
+    max-width:80%; white-space:pre-wrap; word-wrap:break-word;
+    background:var(--panel-2);
+  }
+  .ai .bubble{
+    background:#0f1629;              /* left bubble */
+    border-top-left-radius:8px;       /* subtle opposite corner */
+  }
+  .me .bubble{
+    background:linear-gradient(180deg,var(--accent),#1f55e8);
+    color:#fff; border-color:transparent;
+    border-top-right-radius:8px;
+  }
+  /* Optional tiny “tail” illusion */
+  .ai .bubble{ margin-right:auto }
+  .me .bubble{ margin-left:auto; text-align:left }
 
   .compose{display:flex; gap:10px; padding:12px; border-top:1px solid var(--border);}
   textarea{
@@ -47,7 +72,11 @@
     border:1px solid var(--border); border-radius:12px; padding:10px 12px;
     background:var(--input); color:var(--text); outline:none; box-shadow:var(--shadow);
   }
-  .btn{appearance:none; border:1px solid var(--border); color:var(--text); background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); padding:10px 12px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow);}
+  .btn{
+    appearance:none; border:1px solid var(--border); color:var(--text);
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
+    padding:10px 12px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow);
+  }
   .btn.primary{background:linear-gradient(180deg,var(--accent),#1f55e8); color:white; border-color:transparent}
   .btn:disabled{opacity:.6; cursor:not-allowed}
 </style>
@@ -61,8 +90,8 @@
       <div class="brand">
         <svg class="logo" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <defs><linearGradient id="lvb" x1="4" y1="4" x2="20" y2="20"><stop stop-color="#2f6dff"/><stop offset="1" stop-color="#8ec5ff"/></linearGradient></defs>
-          <path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(#lvb)"/>
-          <circle cx="12" cy="11.1" r="2" fill="#0b0d12"/><rect x="11.25" y="13.1" width="1.5" height="3" rx=".75" fill="#0b0d12"/>
+        <path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(#lvb)"/>
+        <circle cx="12" cy="11.1" r="2" fill="#0b0d12"/><rect x="11.25" y="13.1" width="1.5" height="3" rx=".75" fill="#0b0d12"/>
         </svg>
         <div>
           <div class="name">LocalVault</div>
@@ -71,6 +100,7 @@
       </div>
       <div class="right">
         <span id="dataChip" class="chip muted">Detecting data…</span>
+        <a href="index.html" class="btn">Back to app</a>
       </div>
     </header>
 
@@ -82,7 +112,6 @@
         </div>
         <div class="right">
           <button id="clearBtn" class="btn">Clear chat</button>
-          <a href="index.html" class="btn">Back to app</a>
         </div>
       </div>
 
@@ -99,7 +128,7 @@
     </div>
   </div>
 
-  <!-- Load the frontend UI JS. Keep the path ABSOLUTE so it resolves at the site root. -->
-  <script src="/chat.js?v=4" defer></script>
+  <!-- Frontend UI -->
+  <script src="/chat.js?v=5" defer></script>
 </body>
 </html>
