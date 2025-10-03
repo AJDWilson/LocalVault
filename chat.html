@@ -5,20 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>LocalVault — AI Assistant</title>
 <meta name="theme-color" content="#0b0d12" />
-
 <style>
   :root{
-    --bg:#0b0d12;
-    --panel:#111522;
-    --panel-2:#0e1320;
-    --accent:#2f6dff;
-    --accent-2:#8ec5ff;
-    --text:#e8edf6;
-    --muted:#9aa7bd;
-    --border:rgba(255,255,255,0.08);
-    --input:#0c101a;
-    --shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset;
-    --radius:16px;
+    --bg:#0b0d12; --panel:#111522; --panel-2:#0e1320;
+    --accent:#2f6dff; --accent-2:#8ec5ff; --text:#e8edf6; --muted:#9aa7bd;
+    --border:rgba(255,255,255,0.08); --input:#0c101a; --shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset; --radius:16px;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -32,32 +23,23 @@
     background-size: cover,cover,cover;
     min-height:100vh;
   }
-  a{color:var(--accent); text-decoration:none}
   .wrap{max-width:980px; margin:24px auto; padding:0 16px;}
-
   header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;}
   .brand{display:flex; align-items:center; gap:10px;}
   .brand .logo{width:28px; height:28px}
   .brand .name{font-weight:800; letter-spacing:.3px}
   .brand .tag{font-size:12px; color:var(--muted)}
-
   .card{background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01)); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);}
   .toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:10px 12px;}
   .toolbar .right{margin-left:auto; display:flex; gap:8px; align-items:center}
-
-  .muted{color:var(--muted)}
-  .small{font-size:12px}
   .chip{border:1px solid var(--border); padding:6px 10px; border-radius:999px; background:var(--panel-2); font-size:12px}
-
+  .muted{color:var(--muted)} .small{font-size:12px}
   .switch-row{display:flex; gap:8px; align-items:center}
-  input[type="checkbox"]{width:16px; height:16px}
 
   .chat{display:flex; flex-direction:column; gap:10px; padding:12px; min-height:60vh; max-height:74vh; overflow:auto;}
   .msg{display:flex; gap:10px; align-items:flex-start}
   .bubble{padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:var(--panel-2); max-width:80%; white-space:pre-wrap; word-wrap:break-word;}
-  .me .bubble{background:#152038}
-  .ai .bubble{background:#0f1629}
-  .sys{opacity:.9}
+  .me .bubble{background:#152038} .ai .bubble{background:#0f1629} .sys{opacity:.9}
 
   .compose{display:flex; gap:10px; padding:12px; border-top:1px solid var(--border);}
   textarea{
@@ -65,16 +47,12 @@
     border:1px solid var(--border); border-radius:12px; padding:10px 12px;
     background:var(--input); color:var(--text); outline:none; box-shadow:var(--shadow);
   }
-  .btn{
-    appearance:none; border:1px solid var(--border); color:var(--text);
-    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
-    padding:10px 12px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow);
-  }
+  .btn{appearance:none; border:1px solid var(--border); color:var(--text); background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); padding:10px 12px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow);}
   .btn.primary{background:linear-gradient(180deg,var(--accent),#1f55e8); color:white; border-color:transparent}
   .btn:disabled{opacity:.6; cursor:not-allowed}
 </style>
 
-<!-- Favicon / unified shield -->
+<!-- Unified blue shield favicon -->
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="g" x1="4" y1="4" x2="20" y2="20"><stop stop-color="%232f6dff"/><stop offset="1" stop-color="%238ec5ff"/></linearGradient></defs><path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(%23g)"/><circle cx="12" cy="11.1" r="2" fill="%230b0d12"/><rect x="11.25" y="13.1" width="1.5" height="3" rx=".75" fill="%230b0d12"/></svg>'>
 </head>
 <body>
@@ -91,7 +69,6 @@
           <div class="tag muted small">Private. Local. Fast.</div>
         </div>
       </div>
-
       <div class="right">
         <span id="dataChip" class="chip muted">Detecting data…</span>
       </div>
@@ -122,8 +99,7 @@
     </div>
   </div>
 
-  <!-- cache-bust the script so Vercel/CDN doesn’t serve an old copy -->
-  <script src="./chat.js?v=3" defer></script>
-  <noscript><div style="color:#fff; padding:12px">Enable JavaScript to use the assistant.</div></noscript>
+  <!-- Load the frontend UI JS. Keep the path ABSOLUTE so it resolves at the site root. -->
+  <script src="/chat.js?v=4" defer></script>
 </body>
 </html>
