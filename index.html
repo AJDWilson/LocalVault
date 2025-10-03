@@ -9,8 +9,8 @@
     --bg:#0b0d12;
     --panel:#111522;
     --panel-2:#0e1320;
-    --accent:#2f6dff;      /* LocalVault blue */
-    --accent-2:#8ec5ff;    /* highlight blue */
+    --accent:#2f6dff;
+    --accent-2:#8ec5ff;
     --text:#e8edf6;
     --muted:#9aa7bd;
     --danger:#ff6b6b;
@@ -36,7 +36,6 @@
   a{color:var(--accent); text-decoration:none}
   .wrap{max-width:1200px; margin:28px auto; padding:0 18px;}
 
-  /* Layout: Sidebar + Content (desktop grid) */
   .app{display:grid; grid-template-columns: 240px 1fr; gap:16px;}
   @media (max-width: 900px){ .app{grid-template-columns: 1fr;} }
 
@@ -55,16 +54,16 @@
   .hamburger svg{width:20px; height:20px}
   @media (max-width:900px){ .hamburger{display:inline-flex;} }
 
-  /* Shield logo — same as favicon / AI page */
+  /* Shield logo */
   .logo{width:40px; height:40px; display:grid; place-items:center}
   .wordmark{display:flex; align-items:center; gap:8px; font-weight:800; letter-spacing:.3px}
   .wordmark .name{font-size:18px; color:#dfe9ff}
   .wordmark .tag{font-size:12px; color:var(--muted)}
   @media (max-width:520px){ .wordmark .tag{display:none} }
 
-  /* Top-right controls (uniform height) */
+  /* Top-right controls */
   .toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-  .btn, button, select, .btn-like{
+  .btn, button, .btn-like{
     appearance:none; border:1px solid var(--border); color:var(--text);
     background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
     height:40px; padding:0 12px; border-radius:12px; cursor:pointer;
@@ -79,7 +78,16 @@
   .switch{display:flex; align-items:center; gap:8px}
   @media (max-width:900px){
     .toolbar{width:100%; justify-content:flex-end}
-    .switch span{display:none} /* keep header tighter on mobile */
+    .switch span{display:none}
+  }
+
+  /* Inputs & Dropdowns — DARK (reverted) */
+  input[type="text"], input[type="number"], select{
+    width:auto; min-width:140px;
+    height:40px; padding:0 12px;
+    border-radius:12px; border:1px solid var(--border);
+    background:var(--input); color:var(--text); outline:none;
+    box-shadow:var(--shadow);
   }
 
   .grid{display:grid; gap:14px}
@@ -100,7 +108,7 @@
   .list{display:flex; flex-direction:column; gap:10px}
   .item{display:flex; gap:10px; align-items:center}
   .item input{min-width:0}
-  .item .grow{flex:1.8; min-width:220px;} /* ~10 letters */
+  .item .grow{flex:1.8; min-width:220px;}
   .item input.amount{width:160px}
   .item .remove{border-color:transparent; background:#1b0f13; color:#ff9bb6}
   .sum{font-weight:700}
@@ -111,7 +119,7 @@
   .small{font-size:12px}
   footer{margin-top:32px; text-align:center; color:var(--muted); font-size:13px;}
 
-  /* Calendar (fixed cell size) */
+  /* Calendar */
   .cal-head{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:8px; color:var(--muted); font-size:12px}
   .calendar{display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:8px; grid-auto-rows: 110px;}
   .day{
@@ -128,7 +136,7 @@
   .day.neg{background:linear-gradient(180deg, rgba(255,107,107,.12), rgba(255,107,107,.02))}
   .day.neg .amt{color:var(--danger)}
 
-  /* Modal (sheet) */
+  /* Modal */
   .modal{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:flex-end; justify-content:center; padding:16px;}
   .modal.open{display:flex}
   .sheet{width:min(720px,100%); background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:16px; box-shadow:0 30px 60px rgba(0,0,0,.55);}
@@ -144,7 +152,7 @@
   .cat-head{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
   .cat-head input{max-width:320px}
 
-  /* Sidebar (desktop static; mobile off-canvas) */
+  /* Sidebar (desktop); mobile becomes off-canvas */
   aside{
     background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
     border:1px solid var(--border);
@@ -168,23 +176,23 @@
     position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; opacity:0; transition:opacity .22s ease;
     z-index:60;
   }
+  .mobile-drawer-head{display:none; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; color:var(--muted); font-size:12px; text-transform:uppercase;}
+  .drawer-close{
+    width:36px; height:36px; display:grid; place-items:center; border-radius:10px;
+    border:1px solid var(--border); background:var(--panel-2); color:var(--text); box-shadow:var(--shadow); cursor:pointer;
+  }
   @media (max-width:900px){
     aside{
       position:fixed; top:0; bottom:0; left:0; width:min(86vw,360px);
       margin:0; border-radius:0 16px 16px 0; z-index:70;
       transform:translateX(-105%); transition:transform .25s cubic-bezier(.2,.8,.2,1);
-      background:var(--panel); /* solid background for readability */
+      /* darker LocalVault blue drawer */
+      background:linear-gradient(180deg, rgba(14,19,32,.98), rgba(11,13,18,.98));
+      border-right:1px solid rgba(142,197,255,.15);
     }
     body.drawer-open .drawer-backdrop{display:block; opacity:1;}
     body.drawer-open aside{transform:none;}
-    .mobile-drawer-head{
-      display:flex; align-items:center; justify-content:space-between; gap:8px;
-      margin-bottom:8px; color:var(--muted); font-size:12px; text-transform:uppercase;
-    }
-    .drawer-close{
-      width:36px; height:36px; display:grid; place-items:center; border-radius:10px;
-      border:1px solid var(--border); background:var(--panel-2); color:var(--text); box-shadow:var(--shadow);
-    }
+    .mobile-drawer-head{display:flex;}
   }
 
   /* Floating chat button */
@@ -198,7 +206,7 @@
   .lv-chat-fab:hover{ transform:translateY(-1px); }
 </style>
 
-<!-- Favicon: shield (matches header logo & AI page) -->
+<!-- Favicon (shield) -->
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="g" x1="4" y1="4" x2="20" y2="20"><stop stop-color="%232f6dff"/><stop offset="1" stop-color="%238ec5ff"/></linearGradient></defs><path d="M12 2l7 3v6c0 5.25-3.5 8.74-7 10-3.5-1.26-7-4.75-7-10V5l7-3z" fill="url(%23g)"/><circle cx="12" cy="11.1" r="2" fill="%230b0d12"/><rect x="11.25" y="13.1" width="1.5" height="3" rx=".75" fill="%230b0d12"/></svg>'>
 <meta name="theme-color" content="#0b0d12">
 </head>
@@ -206,12 +214,9 @@
   <div class="wrap">
     <header>
       <div class="brand-wrap">
-        <!-- Mobile hamburger -->
         <button id="menuBtn" class="hamburger" aria-label="Open menu" aria-controls="drawer" aria-expanded="false" title="Menu">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
         </button>
-
-        <!-- Shield logo (same as favicon / AI) -->
         <div class="logo" aria-label="LocalVault">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <defs><linearGradient id="lvb" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
@@ -220,7 +225,6 @@
             <circle cx="12" cy="11.2" r="2" fill="#0a0f1a"/><rect x="11.2" y="13.2" width="1.6" height="3.1" rx="0.8" fill="#0a0f1a"/>
           </svg>
         </div>
-
         <div class="wordmark">
           <span class="name">LocalVault</span>
           <span class="tag">Private. Local. Fast.</span>
@@ -238,7 +242,7 @@
           </select>
         </label>
         <button class="btn ghost" id="exportBtn" title="Download your data as JSON">Export</button>
-        <label class="btn-like" for="importFile" title="Import previously exported data" style="cursor:pointer">Import</label>
+        <label class="btn ghost" for="importFile" title="Import previously exported data" style="cursor:pointer">Import</label>
         <input id="importFile" type="file" accept="application/json" style="display:none">
       </div>
     </header>
@@ -249,7 +253,7 @@
     <div class="app" id="drawer">
       <!-- SIDEBAR NAV -->
       <aside>
-        <div class="mobile-drawer-head" aria-hidden="true" style="display:none">Menu
+        <div class="mobile-drawer-head">Menu
           <button class="drawer-close" id="drawerClose" aria-label="Close menu">×</button>
         </div>
         <div class="nav-section">Menu</div>
@@ -372,7 +376,7 @@
           </div>
         </section>
 
-        <!-- PASSIVE INCOME (with categories) -->
+        <!-- PASSIVE INCOME -->
         <section id="page-income" class="page">
           <div class="section-title">Passive Income</div>
           <div class="grid cols-3">
@@ -526,21 +530,13 @@
   const getFmt = (code) => fmtCache[code] ||= new Intl.NumberFormat(undefined, {style:'currency', currency:code, maximumFractionDigits:2});
   const today = new Date();
 
-  // ------- STATE -------
   function initialState(){
     return {
       currency:'GBP',
-      settings:{
-        includeIsaInNet:true, startOnMonday:true, showZeroDays:false, compoundISA:false,
-        view:'monthly'
-      },
+      settings:{ includeIsaInNet:true, startOnMonday:true, showZeroDays:false, compoundISA:false, view:'monthly' },
       banks:[], assets:[], debts:[],
-      passiveCats:[],               // [{id,name,items:[{id,name,amount}]}]
-      passive:[],                   // legacy (migrated)
-      isa:{ principal:0, rate:0 },
-      subscriptions:[],             // [{id,name,amount,freq}]
-      days:{},                      // 'YYYY-MM-DD': { entries:[{desc, amount}], total:number }
-      cal:{ y: today.getFullYear(), m: today.getMonth() }
+      passiveCats:[], passive:[], isa:{ principal:0, rate:0 },
+      subscriptions:[], days:{}, cal:{ y: today.getFullYear(), m: today.getMonth() }
     }
   }
   function loadState(){
@@ -554,11 +550,8 @@
         isa:Object.assign(base.isa, s.isa||{}),
         cal:Object.assign(base.cal, s.cal||{})
       });
-      // Migration: legacy passive -> default category
       if((merged.passiveCats||[]).length===0 && (merged.passive||[]).length){
-        merged.passiveCats = [{
-          id:id(), name:'General', items: merged.passive.map(p=>({id:id(), name:p.name||'', amount:Number(p.amount)||0}))
-        }];
+        merged.passiveCats = [{ id:id(), name:'General', items: merged.passive.map(p=>({id:id(), name:p.name||'', amount:Number(p.amount)||0})) }];
         merged.passive = [];
       }
       return merged;
@@ -567,13 +560,11 @@
   let state = loadState();
   const saveState = () => localStorage.setItem('wealthTrackerV1', JSON.stringify(state));
 
-  // ------- HELPERS -------
   function currency(amount){ return getFmt(state.currency).format(isFinite(amount)? amount : 0); }
   function parseNum(v){ const n = Number(v); return isFinite(n)? n : 0; }
   function id(){ return Math.random().toString(36).slice(2,9); }
   function ymd(d){ return d.toISOString().slice(0,10); }
 
-  // ------- DYNAMIC LISTS -------
   function renderList(container, list, labels){
     container.innerHTML = '';
     list.forEach((item, idx) => {
@@ -593,13 +584,11 @@
   }
   function addRow(list, defaults){ list.push(defaults); saveAndUpdate({rerenderLists:true}); }
 
-  // ------- PASSIVE CATEGORIES -------
   function sumPassiveMonthly(){
     return (state.passiveCats||[]).reduce((acc,c)=> acc + c.items.reduce((a,b)=> a + (parseNum(b.amount)||0),0), 0);
   }
   function renderCategories(){
-    const wrap = $('#catList');
-    wrap.innerHTML = '';
+    const wrap = $('#catList'); wrap.innerHTML = '';
     (state.passiveCats||[]).forEach((cat, cIdx) => {
       const box = document.createElement('div'); box.className='cat';
       box.innerHTML = `
@@ -643,28 +632,22 @@
     });
   }
 
-  // ------- SUBSCRIPTIONS -------
   function normalizeToMonthly(amount, freq){
     if(freq==='weekly') return amount * 52 / 12;
     if(freq==='yearly') return amount / 12;
-    return amount; // monthly
+    return amount;
   }
   function scaleFromMonthly(monthly, target){
     if(target==='weekly') return monthly * 12 / 52;
     if(target==='yearly') return monthly * 12;
-    return monthly; // monthly
+    return monthly;
   }
   function subsTotals(){
     const monthly = (state.subscriptions||[]).reduce((a,s)=> a + normalizeToMonthly(parseNum(s.amount)||0, s.freq||'monthly'), 0);
-    return {
-      weekly: scaleFromMonthly(monthly, 'weekly'),
-      monthly,
-      yearly: scaleFromMonthly(monthly, 'yearly')
-    };
+    return { weekly: scaleFromMonthly(monthly, 'weekly'), monthly, yearly: scaleFromMonthly(monthly, 'yearly') };
   }
   function renderSubs(){
-    const wrap = $('#subsList');
-    wrap.innerHTML = '';
+    const wrap = $('#subsList'); wrap.innerHTML = '';
     (state.subscriptions||[]).forEach((s, idx) => {
       const row = document.createElement('div');
       row.className = 'item';
@@ -691,7 +674,6 @@
     $('#subsYearly').textContent = currency(t.yearly);
   }
 
-  // ------- CALCULATIONS -------
   const sum = arr => arr.reduce((a,b)=> a + (parseNum(b.amount)||0), 0);
   function totals(){
     const bank = sum(state.banks);
@@ -708,11 +690,8 @@
     const isaYearly = isaP * (compound? (Math.pow(1+monthlyRate,12)-1) : r);
     return { bank, asset, debt, net, passMonthly, isaMonthly, isaYearly };
   }
-  function formatByView(amountMonthly, view){
-    return currency(scaleFromMonthly(amountMonthly, view));
-  }
+  function formatByView(amountMonthly, view){ return currency(scaleFromMonthly(amountMonthly, view)); }
 
-  // ------- SUMMARY RENDER -------
   function renderSummary(){
     const t = totals();
     const view = state.settings.view || 'monthly';
@@ -746,16 +725,12 @@
     $('#isaYearly_side').textContent = currency(t.isaYearly);
   }
 
-  // ------- CALENDAR -------
   function weekdayLabels(){
     const base = state.settings.startOnMonday ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     $('#calHead').innerHTML = base.map(d=>`<div class="sub">${d}</div>`).join('');
   }
   function monthName(y,m){ return new Date(y,m,1).toLocaleDateString(undefined, {month:'long', year:'numeric'}); }
-  function firstDayOffset(y,m){
-    const d = new Date(y,m,1).getDay(); // 0=Sun
-    return state.settings.startOnMonday ? (d===0?6:d-1) : d;
-  }
+  function firstDayOffset(y,m){ const d = new Date(y,m,1).getDay(); return state.settings.startOnMonday ? (d===0?6:d-1) : d; }
   function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
   function dayTotal(dateStr){ const day = state.days[dateStr]; return day ? day.total : 0; }
 
@@ -763,9 +738,8 @@
     const {y,m} = state.cal;
     $('#monthLabel').textContent = monthName(y,m);
     weekdayLabels();
+    const grid = $('#calendar'); grid.innerHTML='';
 
-    const grid = $('#calendar');
-    grid.innerHTML = '';
     const offset = firstDayOffset(y,m);
     const dim = daysInMonth(y,m);
 
@@ -786,7 +760,7 @@
     }
   }
 
-  // ------- TRANSACTIONS MODAL -------
+  /* Transactions modal */
   let openDate = null;
   function openTx(dateStr){
     openDate = dateStr;
@@ -802,8 +776,7 @@
     openDate = null;
   }
   function renderTxList(){
-    const wrap = $('#txList');
-    wrap.innerHTML = '';
+    const wrap = $('#txList'); wrap.innerHTML='';
     const day = state.days[openDate] ||= { entries:[], total:0 };
     day.entries.forEach((e, idx) => {
       const row = document.createElement('div');
@@ -833,7 +806,6 @@
     }
   }
 
-  // ------- EXPORT / IMPORT -------
   function exportData(){
     const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
@@ -865,14 +837,12 @@
     reader.readAsText(file);
   }
 
-  // ------- NAV / PAGES -------
   function showPage(name){
     $$('.nav a').forEach(a => a.classList.toggle('active', a.dataset.page===name));
     $$('.page').forEach(p => p.classList.remove('active'));
     const el = $('#page-' + name);
     if(el) el.classList.add('active');
     if(location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
-    // Close drawer on mobile after navigation
     document.body.classList.remove('drawer-open');
     $('#menuBtn')?.setAttribute('aria-expanded','false');
   }
@@ -888,7 +858,6 @@
     if(hash) showPage(hash);
   }
 
-  // ------- RENDER ROOT -------
   function saveAndUpdate(opts={}){
     saveState();
     renderSummary();
@@ -903,17 +872,14 @@
   }
 
   function wire(){
-    // Currency
     const currencySelect = $('#currencySelect');
     currencySelect.value = state.currency;
     currencySelect.addEventListener('change', e => { state.currency = e.target.value; saveAndUpdate({renderCats:true, renderSubs:true}); });
 
-    // View selector
     const viewSelect = $('#viewSelect');
     viewSelect.value = state.settings.view || 'monthly';
     viewSelect.addEventListener('change', e => { state.settings.view = e.target.value; saveAndUpdate(); });
 
-    // Options
     $('#includeIsaInNet').checked = state.settings.includeIsaInNet;
     $('#includeIsaInNet').addEventListener('change', e => { state.settings.includeIsaInNet = e.target.checked; saveAndUpdate(); });
 
@@ -923,7 +889,6 @@
     $('#showZeroDays').checked = state.settings.showZeroDays;
     $('#showZeroDays').addEventListener('change', e => { state.settings.showZeroDays = e.target.checked; saveAndUpdate(); });
 
-    // Simple lists
     renderList($('#bankList'), state.banks, {name:'Account name', amount:'Balance'});
     $('#addBank').addEventListener('click', () => addRow(state.banks, {name:'', amount:0}));
 
@@ -933,7 +898,6 @@
     renderList($('#debtList'), state.debts, {name:'Debt name', amount:'Amount owed'});
     $('#addDebt').addEventListener('click', () => addRow(state.debts, {name:'', amount:0}));
 
-    // Passive categories
     if(!state.passiveCats) state.passiveCats = [];
     renderCategories();
     $('#addCategory').addEventListener('click', () => {
@@ -941,7 +905,6 @@
       saveAndUpdate({renderCats:true});
     });
 
-    // ISA
     $('#isaPrincipal').value = state.isa.principal ?? 0;
     $('#isaRate').value = state.isa.rate ?? 0;
     $('#isaCompound').checked = state.settings.compoundISA;
@@ -949,15 +912,12 @@
     $('#isaRate').addEventListener('input', e => { state.isa.rate = parseNum(e.target.value); saveAndUpdate(); });
     $('#isaCompound').addEventListener('change', e => { state.settings.compoundISA = e.target.checked; saveAndUpdate(); });
 
-    // Subscriptions
     renderSubs();
     $('#addSub').addEventListener('click', () => { state.subscriptions.push({id:id(), name:'', amount:0, freq:'monthly'}); saveAndUpdate({renderSubs:true}); });
 
-    // Calendar nav
     $('#prevMonth').addEventListener('click', () => { const d = new Date(state.cal.y, state.cal.m-1, 1); state.cal.y=d.getFullYear(); state.cal.m=d.getMonth(); saveAndUpdate(); });
     $('#nextMonth').addEventListener('click', () => { const d = new Date(state.cal.y, state.cal.m+1, 1); state.cal.y=d.getFullYear(); state.cal.m=d.getMonth(); saveAndUpdate(); });
 
-    // Modal
     $('#closeModal').addEventListener('click', closeTx);
     $('#txModal').addEventListener('click', (e) => { if(e.target.id==='txModal') closeTx(); });
     $('#addTx').addEventListener('click', () => {
@@ -966,23 +926,9 @@
       recalcDay(openDate, {keepList:true});
     });
 
-    // Export/Import
     $('#exportBtn').addEventListener('click', exportData);
     $('#importFile').addEventListener('change', importData);
 
-    // Quick add (Dashboard)
-    $('#quickAdd').addEventListener('click', () => {
-      const amt = parseNum($('#quickAmt').value);
-      if(!amt){ $('#quickNote').textContent = 'Enter a non-zero amount.'; return; }
-      const key = ymd(new Date());
-      const day = state.days[key] ||= { entries:[], total:0 };
-      day.entries.push({desc:'Quick add', amount:amt});
-      recalcDay(key, {});
-      $('#quickAmt').value = '';
-      $('#quickNote').textContent = `Added ${currency(amt)} to ${new Date(key).toLocaleDateString()}.`;
-    });
-
-    // Desktop/Mobile nav wiring
     wireNav();
 
     // Drawer controls (mobile)
@@ -990,20 +936,16 @@
     const backdrop = $('#drawerBackdrop');
     const drawerClose = $('#drawerClose');
     const body = document.body;
-
     const openDrawer = () => { body.classList.add('drawer-open'); menuBtn.setAttribute('aria-expanded','true'); };
     const closeDrawer = () => { body.classList.remove('drawer-open'); menuBtn.setAttribute('aria-expanded','false'); };
-
     menuBtn.addEventListener('click', () => body.classList.contains('drawer-open') ? closeDrawer() : openDrawer());
     backdrop.addEventListener('click', closeDrawer);
     drawerClose?.addEventListener('click', closeDrawer);
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeDrawer(); });
 
-    // First paint
     saveAndUpdate({rerenderLists:true, renderCats:true, renderSubs:true});
   }
 
-  // Boot
   wire();
 })();
 </script>
