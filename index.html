@@ -26,7 +26,6 @@
     margin:0;
     color:var(--text);
     font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji";
-    /* Full-bleed, non-repeating branded background */
     background:
       radial-gradient(1400px 900px at 75% -15%, rgba(46,109,255,.18) 0%, rgba(46,109,255,0) 55%) fixed no-repeat,
       radial-gradient(1400px 900px at 20% -20%, rgba(142,197,255,.12) 0%, rgba(142,197,255,0) 50%) fixed no-repeat,
@@ -39,16 +38,24 @@
 
   /* Layout: Sidebar + Content */
   .app{display:grid; grid-template-columns: 240px 1fr; gap:16px;}
-  @media (max-width: 900px){ .app{grid-template-columns: 1fr} aside{position:sticky; top:0; z-index:5}}
 
-  header{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:18px;}
+  header{display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:18px;}
   .brand{display:flex; gap:14px; align-items:center;}
+
+  /* Hamburger (mobile only) */
+  .menu-btn{
+    display:none; place-items:center; width:42px; height:42px; border-radius:12px;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
+    color:var(--text); box-shadow:var(--shadow); cursor:pointer;
+  }
+  .menu-btn svg{width:22px; height:22px}
+
   /* Remove blue tile behind logo and make the icon larger */
   .logo{
     width:56px; height:56px; border-radius:0; background:none; box-shadow:none;
     display:grid; place-items:center;
   }
-  .brand h1{margin:0; font-size:18px; letter-spacing:.3px}
   .tagline{font-size:12px; color:var(--muted)}
 
   /* Sidebar */
@@ -59,7 +66,13 @@
     padding:12px;
     box-shadow:var(--shadow);
     display:flex; flex-direction:column; gap:8px;
+    position:relative;
   }
+  .close-drawer{display:none; position:absolute; top:10px; right:10px; width:36px; height:36px;
+    border:1px solid var(--border); border-radius:10px; background:var(--panel-2); color:var(--text);
+    place-items:center; box-shadow:var(--shadow); cursor:pointer;
+  }
+
   .nav-section{margin-bottom:8px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.25px}
   .nav{display:flex; flex-direction:column; gap:8px;}
   .nav a{
@@ -164,6 +177,30 @@
     border:1px solid var(--border); box-shadow:var(--shadow);
   }
   .lv-chat-fab:hover{ transform:translateY(-1px); }
+
+  /* ---------- Mobile drawer styles ---------- */
+  @media (max-width: 900px){
+    .app{grid-template-columns: 1fr}
+    .menu-btn{display:grid}
+    /* Off-canvas drawer */
+    aside{
+      position:fixed; left:0; top:0; bottom:0; height:100vh;
+      width:min(85vw, 320px);
+      border-left:none; border-top:none; border-bottom:none; border-right:1px solid var(--border);
+      border-radius:0 16px 16px 0;
+      transform:translateX(-110%);
+      transition:transform .28s ease, box-shadow .28s ease;
+      z-index:60; padding-top:14px;
+    }
+    aside.open{ transform:translateX(0); box-shadow: 0 25px 60px rgba(0,0,0,.5); }
+    .close-drawer{ display:grid; }
+    /* Backdrop */
+    .backdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      opacity:0; pointer-events:none; transition:opacity .28s ease; z-index:50;
+    }
+    .backdrop.show{ opacity:1; pointer-events:auto; }
+  }
 </style>
 
 <!-- Blue SVG favicon (shield-only) -->
@@ -173,6 +210,11 @@
 <body>
   <div class="wrap">
     <header>
+      <!-- hamburger (mobile) -->
+      <button id="menuBtn" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="sideMenu">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+
       <div class="brand">
         <!-- Bigger, tile-less shield logo -->
         <div class="logo" aria-label="LocalVault logo" title="LocalVault">
@@ -192,6 +234,7 @@
           <span class="tag">Private. Local. Fast.</span>
         </div>
       </div>
+
       <div class="toolbar">
         <label class="switch">
           <span>Currency</span>
@@ -209,8 +252,9 @@
     </header>
 
     <div class="app">
-      <!-- SIDEBAR NAV -->
-      <aside>
+      <!-- SIDEBAR NAV (drawer on mobile) -->
+      <aside id="sideMenu" aria-hidden="true">
+        <button id="closeMenu" class="close-drawer" aria-label="Close menu">✕</button>
         <div class="nav-section">Menu</div>
         <nav class="nav" id="nav">
           <a href="#dashboard" data-page="dashboard" class="active">🏠 Dashboard</a>
@@ -478,6 +522,9 @@
     </footer>
   </div>
 
+  <!-- Backdrop for mobile drawer -->
+  <div id="menuBackdrop" class="backdrop" hidden></div>
+
 <script>
 (() => {
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -514,7 +561,6 @@
         isa:Object.assign(base.isa, s.isa||{}),
         cal:Object.assign(base.cal, s.cal||{})
       });
-      // Migration: legacy passive -> default category
       if((merged.passiveCats||[]).length===0 && (merged.passive||[]).length){
         merged.passiveCats = [{
           id:id(), name:'General', items: merged.passive.map(p=>({id:id(), name:p.name||'', amount:Number(p.amount)||0}))
@@ -700,7 +746,7 @@
 
     $('#bankTotal_side').textContent = currency(t.bank);
     $('#assetTotal_side').textContent = currency(t.asset);
-    $('#debtTotal_side').textContent = currency(t.debts);
+    $('#debtTotal_side').textContent = currency(t.debt);
     $('#passiveTotal_side').textContent = currency(t.passMonthly);
     $('#isaMonthly_side').textContent = currency(t.isaMonthly);
     $('#isaYearly_side').textContent = currency(t.isaYearly);
@@ -833,12 +879,35 @@
     if(el) el.classList.add('active');
     if(location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
   }
+
+  // Drawer helpers
+  const aside = $('#sideMenu');
+  const menuBtn = $('#menuBtn');
+  const closeBtn = $('#closeMenu');
+  const backdrop = $('#menuBackdrop');
+  function openMenu(){
+    aside.classList.add('open');
+    aside.setAttribute('aria-hidden','false');
+    backdrop.classList.add('show'); backdrop.hidden = false;
+    menuBtn.setAttribute('aria-expanded','true');
+    document.body.style.overflow='hidden';
+  }
+  function closeMenu(){
+    aside.classList.remove('open');
+    aside.setAttribute('aria-hidden','true');
+    backdrop.classList.remove('show'); setTimeout(()=>backdrop.hidden=true, 280);
+    menuBtn.setAttribute('aria-expanded','false');
+    document.body.style.overflow='';
+  }
+
   function wireNav(){
     $('#nav').addEventListener('click', (e) => {
       const a = e.target.closest('a[data-page]');
       if(!a) return;
       e.preventDefault();
       showPage(a.dataset.page);
+      // close drawer on mobile after choosing
+      if (window.matchMedia('(max-width: 900px)').matches) closeMenu();
     });
     $$('[data-jump]').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.jump)));
     const hash = (location.hash||'').replace('#','');
@@ -939,10 +1008,14 @@
       $('#quickNote').textContent = `Added ${currency(amt)} to ${new Date(key).toLocaleDateString()}.`;
     });
 
+    // Drawer wiring
+    menuBtn.addEventListener('click', () => aside.classList.contains('open') ? closeMenu() : openMenu());
+    closeBtn.addEventListener('click', closeMenu);
+    backdrop.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeMenu(); });
+
     // Nav + initial
     wireNav();
-
-    // First paint
     saveAndUpdate({rerenderLists:true, renderCats:true, renderSubs:true});
   }
 
